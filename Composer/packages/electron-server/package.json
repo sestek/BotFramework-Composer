@@ -18,11 +18,11 @@
     "lint": "eslint --quiet ./src",
     "lint:fix": "yarn lint --fix",
     "pack": "node scripts/electronBuilderPack.js",
-    "start": "cross-env NODE_ENV=development electron .",
     "start:electron": "./node_modules/.bin/electron --inspect=7777 --remote-debugging-port=7778 .",
     "start:electron:dev": "cross-env NODE_ENV=development ELECTRON_TARGET_URL=http://localhost:3000/ npm run start:electron",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "start:watch": "nodemon"
   },
   "devDependencies": {
     "@types/archiver": "^3.0.0",
@@ -56,10 +56,25 @@
   "dependencies": {
     "@bfc/server": "*",
     "@bfc/shared": "*",
+    "cross-env": "^7.0.2",
     "debug": "4.1.1",
     "electron-updater": "4.2.5",
+    "electron-window-manager": "^1.0.6",
     "fix-path": "^3.0.0",
     "lodash": "^4.17.15",
     "semver": "7.3.2"
+  },
+  "nodemonConfig": {
+    "exec": "npm run build && npm run start:electron:dev",
+    "ext": "ts, tsx",
+    "ignore": [
+      "node_modules/**/*",
+      "build/**/*",
+      "dist/**/*"
+    ],
+    "watch": [
+      "*"
+    ],
+    "verbose": false
   }
 }

@@ -14,6 +14,9 @@ import { navTo } from './navigation';
 import settingStorage from './../../utils/dialogSettingStorage';
 import luFileStatusStorage from './../../utils/luFileStatusStorage';
 import httpClient from './../../utils/httpUtil';
+import { isElectron } from './../../utils/electronUtil';
+
+const { ipcRenderer } = window;
 
 const checkProjectUpdates = async () => {
   const workers = [filePersistence, lgWorker, luWorker];
@@ -134,6 +137,10 @@ export const openBotProject: ActionCreator = async (store, absolutePath) => {
     if (files && files.length > 0) {
       // navTo(store, 'Main');
       const mainUrl = `/bot/${projectId}/dialogs/Main`;
+      if (isElectron()) {
+        ipcRenderer.send('open-new-window', { url: mainUrl, desc: response.data.name });
+        return;
+      }
       navigateTo(mainUrl);
     } else {
       navigate(BASEPATH);

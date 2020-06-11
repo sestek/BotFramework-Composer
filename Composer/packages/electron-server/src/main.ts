@@ -8,6 +8,7 @@ import { app, ipcMain } from 'electron';
 import fixPath from 'fix-path';
 import { UpdateInfo } from 'electron-updater';
 import { AppUpdaterSettings, UserSettings } from '@bfc/shared';
+import windowManager from 'electron-window-manager';
 
 import { isDevelopment } from './utility/env';
 import { isWindows, isMac } from './utility/platform';
@@ -60,9 +61,31 @@ async function createAppDataDir() {
 
   process.env.LOCAL_PUBLISH_PATH = localPublishPath;
   process.env.AZURE_PUBLISH_PATH = azurePublishPath;
+  process.env.COMPOSER_DEV_TOOLS = 'true';
 
   log('creating local bot runtime publish path: ', localPublishPath);
   await mkdirp(localPublishPath);
+}
+
+function initializeWindowManager() {
+  ipcMain.on('open-new-window', (_ev, payload) => {
+    const updatedUrl = 'http://localhost:3000/' + payload.url;
+    const mgr = windowManager.createNew(updatedUrl, updatedUrl);
+    mgr.setURL(updatedUrl);
+    mgr.open();
+    console.log('saasass');
+
+    const homeWindow = windowManager.createNew(updatedUrl, updatedUrl, updatedUrl, false, {
+      width: 600,
+      height: 450,
+      position: 'topLeft',
+      layout: 'simple',
+      showDevTools: true,
+      resizable: true,
+    });
+
+    homeWindow.open();
+  });
 }
 
 function initializeAppUpdater(settings: AppUpdaterSettings) {
@@ -182,6 +205,7 @@ async function run() {
       // we can't synchronously call the main process (due to deadlocks)
       // so we wait for the initial settings to be loaded from the client
       initializeAppUpdater(settings.appUpdater);
+      initializeWindowManager();
     });
     await loadServer();
     await main();
