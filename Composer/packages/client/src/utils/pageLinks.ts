@@ -54,6 +54,13 @@ export const topLinks = (projectId: string, openedDialogId: string) => {
       exact: true,
       disabled: !botLoaded,
     },
+    {
+      to: `/plugins`,
+      iconName: 'OEM',
+      labelName: formatMessage('Plugins'),
+      exact: true,
+      disabled: false,
+    },
   ];
 
   if (process.env.COMPOSER_AUTH_PROVIDER === 'abs-h') {

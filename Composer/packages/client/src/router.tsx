@@ -24,6 +24,7 @@ const Notifications = React.lazy(() => import('./pages/notifications/Notificatio
 const Publish = React.lazy(() => import('./pages/publish/Publish'));
 const Skills = React.lazy(() => import('./pages/skills'));
 const BotCreationFlowRouter = React.lazy(() => import('./components/CreationFlow/CreationFlow'));
+const Plugins = React.lazy(() => import('./pages/plugins'));
 
 const Routes = (props) => {
   const { state } = useContext(StoreContext);
@@ -57,6 +58,7 @@ const Routes = (props) => {
           <SettingPage path="settings/*" />
           <BotCreationFlowRouter path="projects/*" />
           <BotCreationFlowRouter path="home" />
+          <Plugins path="plugins" />
           <NotFound default />
         </Router>
       </Suspense>

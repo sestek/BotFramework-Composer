@@ -18,7 +18,7 @@ import {
 import formatMessage from 'format-message';
 
 import { ActionTypes, FileTypes, BotStatus, Text, AppUpdaterStatus } from '../../constants';
-import { DialogSetting, ReducerFunc } from '../types';
+import { DialogSetting, ReducerFunc, Plugin } from '../types';
 import { UserTokenPayload } from '../action/types';
 import { getExtension, getBaseName } from '../../utils/fileUtil';
 import storage from '../../utils/storage';
@@ -677,6 +677,24 @@ const getBoilerplateSuccess: ReducerFunc<{
   return state;
 };
 
+const setPlugins: ReducerFunc<{ plugins: Plugin[] }> = (state, { plugins }) => {
+  state.plugins = plugins;
+
+  return state;
+};
+
+const updatePlugin: ReducerFunc<{ plugin: Plugin }> = (state, { plugin }) => {
+  state.plugins = state.plugins.map((p) => {
+    if (p.id === plugin.id) {
+      return plugin;
+    }
+
+    return p;
+  });
+
+  return state;
+};
+
 const noOp: ReducerFunc = (state) => {
   return state;
 };
@@ -750,4 +768,6 @@ export const reducer = createReducer({
   [ActionTypes.SET_CUSTOM_RUNTIME_TOGGLE]: setCustomRuntimeToggle,
   [ActionTypes.SET_RUNTIME_FIELD]: setRuntimeField,
   [ActionTypes.GET_BOILERPLATE_SUCCESS]: getBoilerplateSuccess,
+  [ActionTypes.PLUGINS_FETCH_SUCCESS]: setPlugins,
+  [ActionTypes.PLUGINS_TOGGLE_SUCCESS]: updatePlugin,
 });
