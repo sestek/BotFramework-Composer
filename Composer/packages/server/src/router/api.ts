@@ -57,6 +57,7 @@ router.post('/runtime/eject/:projectId/:template', EjectController.eject);
 router.get('/assets/projectTemplates', AssetController.getProjTemplates);
 
 // plugins
+router.get('/plugins', PluginsController.listPlugins);
 router.post('/plugins', PluginsController.addPlugin);
 router.delete('/plugins', PluginsController.removePlugin);
 router.patch('/plugins/toggle', PluginsController.togglePlugin);
