@@ -54,6 +54,16 @@ export const TableCell = css`
   }
 `;
 
+export const ClickableTableCell = css`
+  cursor: pointer;
+  white-space: pre-wrap;
+  font-size: 14px;
+  textarea,
+  input {
+    border: 1px solid #dddddd;
+  }
+`;
+
 export const FormFieldAlignHorizontalBotSettings = css`
   max-width: 1500px;
   margin-top: 20px;

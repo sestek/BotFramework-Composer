@@ -30,7 +30,7 @@
       "name": "Bot Framework Composer",
       "role": "Viewer",
       "schemes": [
-        "bfcomposer"
+        "bfcomposers"
       ]
     }
   ],

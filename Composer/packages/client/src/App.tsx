@@ -21,6 +21,7 @@ import { RequireAuth } from './components/RequireAuth';
 import onboardingState from './utils/onboardingStorage';
 import { isElectron } from './utils/electronUtil';
 import { useLinks } from './utils/hooks';
+import httpClient from './utils/httpUtil';
 
 initializeIcons(undefined, { disableWarnings: true });
 
@@ -36,12 +37,49 @@ export const App: React.FC = () => {
   const { actions, state } = useContext(StoreContext);
   const [sideBarExpand, setSideBarExpand] = useState(false);
 
-  const { onboardingSetComplete } = actions;
+  const { onboardingSetComplete, publishToTarget, openBotProject } = actions;
   const { botName, locale, announcement } = state;
   const { topLinks, bottomLinks } = useLinks();
 
+  const openMultipleProjects = async (storageId: string) => {
+    const obj = (window as any).botsToBeLoaded;
+    const skillPromises: any[] = [];
+    openBotProject(obj.workspace);
+    obj.skills.map((skill) => {
+      const matched = skill.manifests.find((manifest) => manifest.name === 'default');
+
+      if (matched) {
+        const workspace = matched.workspace.split('/');
+        workspace.pop();
+        workspace.pop();
+
+        const promise = httpClient.put(`/projects/open`, {
+          storageId,
+          path: workspace.join('/'),
+        });
+        skillPromises.push(promise);
+      }
+    });
+    const vaPromise = httpClient.put(`/projects/open`, {
+      storageId,
+      path: obj.workspace,
+    });
+    const promises = [...skillPromises, vaPromise];
+
+    const responses = await Promise.all(promises);
+    for (const response of responses) {
+      const projectId = response.data.id;
+      await publishToTarget(projectId, {
+        name: 'default',
+        type: '@bfc/plugin-localpublish',
+      });
+    }
+  };
+
   useEffect(() => {
     onboardingSetComplete(onboardingState.getComplete());
+    console.log(openMultipleProjects);
+    // openMultipleProjects('default');
   }, []);
 
   const mapNavItemTo = (x) => resolveToBasePath(BASEPATH, x);

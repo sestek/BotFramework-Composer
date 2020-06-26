@@ -118,22 +118,23 @@ export const deleteBotProject: ActionCreator = async (store, projectId) => {
 
 export const openBotProject: ActionCreator = async (store, absolutePath) => {
   //set storageId = 'default' now. Some other storages will be added later.
+  // const oldProjectId = store.getState().projectId;
   const storageId = 'default';
   try {
     const data = {
       storageId,
       path: absolutePath,
     };
-    await setOpenPendingStatus(store);
+    // await setOpenPendingStatus(store);
     const response = await httpClient.put(`/projects/open`, data);
     const files = response.data.files;
     const projectId = response.data.id;
-    store.dispatch({
-      type: ActionTypes.GET_PROJECT_SUCCESS,
-      payload: {
-        response,
-      },
-    });
+    // store.dispatch({
+    //   type: ActionTypes.GET_PROJECT_SUCCESS,
+    //   payload: {
+    //     response,
+    //   },
+    // });
     if (files && files.length > 0) {
       // navTo(store, 'Main');
       const mainUrl = `/bot/${projectId}/dialogs/Main`;

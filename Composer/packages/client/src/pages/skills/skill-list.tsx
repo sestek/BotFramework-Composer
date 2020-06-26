@@ -10,7 +10,7 @@ import {
   CheckboxVisibility,
   IColumn,
 } from 'office-ui-fabric-react/lib/DetailsList';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useContext } from 'react';
 import { IconButton } from 'office-ui-fabric-react/lib/Button';
 import { TooltipHost } from 'office-ui-fabric-react/lib/Tooltip';
 import { ScrollablePane, ScrollbarVisibility } from 'office-ui-fabric-react/lib/ScrollablePane';
@@ -21,8 +21,9 @@ import formatMessage from 'format-message';
 import { Skill } from '@bfc/shared';
 
 import { DisplayManifestModal } from '../../components/Modal/DisplayManifest';
+import { StoreContext } from '../../store';
 
-import { TableView, TableCell } from './styles';
+import { TableView, TableCell, ClickableTableCell } from './styles';
 
 export interface ISkillListProps {
   skills: Skill[];
@@ -31,61 +32,101 @@ export interface ISkillListProps {
   onDelete: (index?: number) => void;
 }
 
-const columns: IColumn[] = [
-  {
-    key: 'name',
-    name: formatMessage('Available Skills'),
-    fieldName: 'name',
-    minWidth: 100,
-    maxWidth: 150,
-    isResizable: true,
-    data: 'string',
-    onRender: (item: Skill) => {
-      return <div css={TableCell}>{item.name}</div>;
-    },
-  },
-  {
-    key: 'msAppId',
-    name: formatMessage('App Id'),
-    fieldName: 'msAppId',
-    minWidth: 150,
-    maxWidth: 280,
-    isResizable: true,
-    data: 'string',
-    onRender: (item: Skill) => {
-      return <div css={TableCell}>{item.msAppId}</div>;
-    },
-  },
-  {
-    key: 'endpointUrl',
-    name: formatMessage('Skill Endpoint'),
-    fieldName: 'endpointUrl',
-    minWidth: 250,
-    maxWidth: 400,
-    isResizable: true,
-    data: 'string',
-    onRender: (item: Skill) => {
-      return <div css={TableCell}>{item.endpointUrl}</div>;
-    },
-  },
-  {
-    key: 'description',
-    name: formatMessage('Description'),
-    fieldName: 'description',
-    minWidth: 200,
-    maxWidth: 400,
-    isResizable: true,
-    data: 'string',
-    onRender: (item: Skill) => {
-      return <div css={TableCell}>{item.description}</div>;
-    },
-  },
-];
-
 const SkillList: React.FC<ISkillListProps> = (props) => {
+  const { actions } = useContext(StoreContext);
   const { skills, projectId, onEdit, onDelete } = props;
+  const { openBotProject } = actions;
 
   const [selectedSkillUrl, setSelectedSkillUrl] = useState<string | null>(null);
+  const [currentSkills, setSkills] = useState([] as any[]);
+
+  const handleLinkClick = (link) => {
+    openBotProject(link);
+  };
+
+  const columns: IColumn[] = [
+    {
+      key: 'name',
+      name: formatMessage('Available Skills'),
+      fieldName: 'name',
+      minWidth: 100,
+      maxWidth: 150,
+      isResizable: true,
+      data: 'string',
+      onRender: (item: Skill) => {
+        return <div css={TableCell}>{item.name}</div>;
+      },
+    },
+    {
+      key: 'msAppId',
+      name: formatMessage('App Id'),
+      fieldName: 'msAppId',
+      minWidth: 150,
+      maxWidth: 280,
+      isResizable: true,
+      data: 'string',
+      onRender: (item: Skill) => {
+        return <div css={TableCell}>{item.msAppId}</div>;
+      },
+    },
+    {
+      key: 'endpointUrl',
+      name: formatMessage('Skill Endpoint'),
+      fieldName: 'endpointUrl',
+      minWidth: 250,
+      maxWidth: 400,
+      isResizable: true,
+      data: 'string',
+      onRender: (item: Skill) => {
+        return <div css={TableCell}>{item.endpointUrl}</div>;
+      },
+    },
+    {
+      key: 'description',
+      name: formatMessage('Workspace'),
+      fieldName: 'description',
+      minWidth: 200,
+      maxWidth: 400,
+      isResizable: true,
+      data: 'string',
+      onRender: (item: Skill) => {
+        return (
+          <a css={ClickableTableCell} role="button" onClick={() => handleLinkClick(item.description)}>
+            {item.description}
+          </a>
+        );
+      },
+    },
+  ];
+
+  useEffect(() => {
+    console.log(skills);
+    const obj = (window as any).botsToBeLoaded;
+    const mappedSkill: any[] = [];
+    obj.skills.map((skill) => {
+      const matched = skill.manifest.name === 'default';
+      if (matched) {
+        const workspace = skill.manifest.workspace.split('/');
+        workspace.pop();
+        workspace.pop();
+        mappedSkill.push({
+          name: workspace[workspace.length - 1],
+          description: workspace.join('/'),
+          endpointUrl: '',
+          msAppId: '',
+        });
+      } else {
+        const workspace = skill.manifest.workspace.split('/');
+        mappedSkill.push({
+          name: workspace[workspace.length - 1],
+          description: '',
+          endpointUrl: skill.manifest.workspace,
+          msAppId: '',
+        });
+      }
+    });
+    setSkills(mappedSkill);
+  }, []);
 
   const onViewManifest = (item) => {
     if (item && item.name && item.body) {
@@ -162,7 +203,7 @@ const SkillList: React.FC<ISkillListProps> = (props) => {
             isHeaderVisible
             checkboxVisibility={CheckboxVisibility.hidden}
             columns={getColumns()}
-            items={skills}
+            items={currentSkills}
             layoutMode={DetailsListLayoutMode.justified}
             selectionMode={SelectionMode.single}
             styles={{ contentWrapper: { fontSize: FontSizes.size16 } }}

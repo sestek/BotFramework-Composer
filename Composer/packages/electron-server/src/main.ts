@@ -3,7 +3,8 @@
 
 import { join, resolve } from 'path';
 
-import { mkdirp } from 'fs-extra';
+import axios from 'axios';
+import { mkdirp, readFile } from 'fs-extra';
 import { app, ipcMain } from 'electron';
 import fixPath from 'fix-path';
 import { UpdateInfo } from 'electron-updater';
@@ -19,6 +20,62 @@ import { AppUpdater } from './appUpdater';
 import { parseDeepLinkUrl } from './utility/url';
 import { composerProtocol } from './constants';
 import { initAppMenu } from './appMenu';
+
+function startup() {
+  const httpClient = axios.create({
+    baseURL: 'http://localhost:3000/api',
+  });
+
+  const storageId = 'default';
+  const handleBotStarting = async (contents) => {
+    const workspace = contents.workspace;
+    const skillPromises: any[] = [];
+    contents.skills.map((skill) => {
+      const matched = skill.manifest.name === 'default';
+      const workspaceObj = skill.manifest.workspace;
+      if (matched) {
+        const workspace = workspaceObj.split('/');
+        workspace.pop();
+        workspace.pop();
+
+        const promise = httpClient.put(`/projects/open`, {
+          storageId,
+          path: workspace.join('/'),
+        });
+        skillPromises.push(promise);
+      }
+    });
+
+    try {
+      const promises = [
+        httpClient.put('projects/open', {
+          storageId,
+          path: workspace,
+        }),
+        ...skillPromises,
+      ];
+      const results = await Promise.all(promises);
+
+      for (const responseOld of results) {
+        const projectId = responseOld.data.id;
+        const response = await httpClient.post(`/publish/${projectId}/publish/default`, {
+          metadata: {},
+          sensitiveSettings: {},
+        });
+        console.log(response);
+      }
+    } catch (ex) {
+      console.log(ex);
+    }
+  };
+
+  readFile('/Users/srravich/Desktop/startup/composer-workspace.json', 'utf8', function (err, contents) {
+    console.log(contents);
+    handleBotStarting(JSON.parse(contents));
+  });
+
+  console.log('after calling readFile');
+}
 
 const error = log.extend('error');
 let deeplinkUrl = '';
@@ -38,6 +95,11 @@ const getBaseUrl = () => {
 if (app.isPackaged) {
   process.env.NODE_ENV = 'production';
 }
+app.setAsDefaultProtocolClient(
+  'bfcomposers',
+  '/Users/srravich/Projects/BotFramework-Composer/Composer/node_modules.bin/electron',
+  ['/Users/srravich/Projects/BotFramework-Composer/Composer/packages/electron-server/build']
+);
 log(`${process.env.NODE_ENV} environment detected.`);
 
 function processArgsForWindows(args: string[]): string {
@@ -70,21 +132,21 @@ async function createAppDataDir() {
 function initializeWindowManager() {
   ipcMain.on('open-new-window', (_ev, payload) => {
     const updatedUrl = 'http://localhost:3000/' + payload.url;
-    const mgr = windowManager.createNew(updatedUrl, updatedUrl);
-    mgr.setURL(updatedUrl);
-    mgr.open();
-    console.log('saasass');
-
-    const homeWindow = windowManager.createNew(updatedUrl, updatedUrl, updatedUrl, false, {
-      width: 600,
-      height: 450,
-      position: 'topLeft',
-      layout: 'simple',
-      showDevTools: true,
-      resizable: true,
-    });
-
-    homeWindow.open();
+    windowManager
+      .createNew(payload.url, payload.url, updatedUrl, false, {
+        width: 1200,
+        height: 850,
+        position: 'topLeft',
+        layout: 'simple',
+        showDevTools: false,
+        resizable: true,
+        webPreferences: {
+          nodeIntegrationInWorker: false,
+          nodeIntegration: false,
+          preload: join(__dirname, 'preload.js'),
+        },
+      })
+      .open();
   });
 }
 
@@ -150,6 +212,9 @@ async function loadServer() {
   const { start } = await import('@bfc/server');
   serverPort = await start(pluginsDir);
   log(`Server started at port: ${serverPort}`);
+  setTimeout(() => {
+    startup();
+  }, 3000);
 }
 
 async function main() {
