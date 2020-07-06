@@ -15,6 +15,7 @@ import { StoreContext } from './store';
 import { openAlertModal } from './components/Modal/AlertDialog';
 import { dialogStyle } from './components/Modal/dialogStyle';
 import { LoadingSpinner } from './components/LoadingSpinner';
+import { PluginPageContainer } from './pages/PluginPageContainer';
 
 const DesignPage = React.lazy(() => import('./pages/design/DesignPage'));
 const LUPage = React.lazy(() => import('./pages/language-understanding/LUPage'));
@@ -24,7 +25,6 @@ const Notifications = React.lazy(() => import('./pages/notifications/Notificatio
 const Publish = React.lazy(() => import('./pages/publish/Publish'));
 const Skills = React.lazy(() => import('./pages/skills'));
 const BotCreationFlowRouter = React.lazy(() => import('./components/CreationFlow/CreationFlow'));
-const Plugins = React.lazy(() => import('./pages/plugins'));
 
 const Routes = (props) => {
   const { state } = useContext(StoreContext);
@@ -58,6 +58,7 @@ const Routes = (props) => {
           <SettingPage path="settings/*" />
           <BotCreationFlowRouter path="projects/*" />
           <BotCreationFlowRouter path="home" />
+          <PluginPageContainer path=":pluginId/:pluginPage" />
           <NotFound default />
         </Router>
       </Suspense>
