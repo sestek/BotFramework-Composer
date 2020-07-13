@@ -45,14 +45,15 @@
       "request": "launch",
       "name": "Server: Launch",
       "args": [
-        "./build/server.js"
+        "./build/init.js"
       ],
-      "preLaunchTask": "server: build",
+      "env": {
+        "DEBUG": ""
+      },
       "restart": true,
       "outFiles": [
         "./build/*"
       ],
-      "envFile": "${workspaceFolder}/Composer/packages/server/.env",
       "outputCapture": "std",
       "cwd": "${workspaceFolder}/Composer/packages/server"
     },
