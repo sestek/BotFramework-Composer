@@ -4,48 +4,20 @@
 import path from 'path';
 import childProcess from 'child_process';
 import { promisify } from 'util';
+import glob from 'globby';
 
 import { readJson } from 'fs-extra';
-import filter from 'lodash/filter';
-import assign from 'lodash/assign';
-import { pluginLoader } from '@bfc/plugin-loader';
 
-import { Store } from '../../store/store';
-import logger from '../../logger';
+import { pluginLoader } from '../loader';
+import logger from '../logger';
+import { ExtensionManifestStore, PluginBundle } from '../storage/extensionManifestStore';
 
 const log = logger.extend('plugins');
 
 const exec = promisify(childProcess.exec);
 
-const PLUGINS_DIR = path.resolve(__dirname, '../../../.composer');
-
-interface PluginBundle {
-  id: string;
-  path: string;
-}
-
-interface PluginContributes {
-  views?: {
-    page?: {
-      id: string;
-      name: string;
-      icon?: string;
-      when?: string;
-    }[];
-  };
-}
-
-interface PluginConfig {
-  id: string;
-  name: string;
-  enabled: boolean;
-  version: string;
-  configuration: object;
-  /** path where module is installed */
-  path: string;
-  bundles: PluginBundle[];
-  contributes: PluginContributes;
-}
+// TODO: allow this to be overridden by an ENV var
+const REMOTE_PLUGINS_DIR = path.resolve(__dirname, '../../../Composer');
 
 interface PluginInfo {
   id: string;
@@ -59,36 +31,48 @@ interface PackageJSON {
   name: string;
   version: string;
   description: string;
-
+  extendsComposer: boolean;
   composer: any;
 }
 
-export class PluginManager {
-  private dir = PLUGINS_DIR;
-  private searchCache = new Map<string, PluginInfo>();
+let manager: PluginManager;
 
-  constructor(pluginsDirectory?: string) {
-    if (pluginsDirectory) {
-      this.dir = pluginsDirectory;
+export class PluginManager {
+  private builtinPluginsDir;
+  private remotePluginsDir;
+  private searchCache = new Map<string, PluginInfo>();
+  private manifest: ExtensionManifestStore;
+
+  public static getInstance() {
+    if (!manager) {
+      manager = new PluginManager();
     }
+    return manager;
   }
 
-  public getAll(opts: { enabled?: boolean } = {}) {
-    const all = Store.get<PluginConfig[]>('plugins', []);
+  // singleton
+  private constructor() {
+    console.log(
+      `PluginManager initializing with the following values: \n${process.env.COMPOSER_BUILTIN_PLUGINS_FOLDER} \n${REMOTE_PLUGINS_DIR}`
+    );
+    this.manifest = new ExtensionManifestStore();
+    this.builtinPluginsDir = process.env.COMPOSER_BUILTIN_PLUGINS_FOLDER;
+    this.remotePluginsDir = REMOTE_PLUGINS_DIR;
+  }
 
-    return filter(all, opts) as PluginConfig[];
+  public getAll() {
+    const extensions = this.manifest.getExtensions();
+    return Object.keys(extensions).map((extId) => extensions[extId]);
   }
 
   public find(id: string) {
-    const all = this.getAll();
-
-    return all.find((p) => p.id === id);
+    return this.manifest.getExtensions()[id];
   }
 
   public async install(name: string, version?: string) {
     const packageNameAndVersion = version ? `${name}@${version}` : name;
-    const cmd = `npm install --no-audit --prefix ${this.dir} ${packageNameAndVersion}`;
-    log('Installing %s@%s to %s', name, version, this.dir);
+    const cmd = `npm install --no-audit --prefix ${this.remotePluginsDir} ${packageNameAndVersion}`;
+    log('Installing %s@%s to %s', name, version, this.remotePluginsDir);
     log(cmd);
 
     const { stdout, stderr } = await exec(cmd);
@@ -99,8 +83,8 @@ export class PluginManager {
     const packageJson = await this.getPackageJson(name);
 
     if (packageJson) {
-      const pluginPath = path.resolve(this.dir, 'node_modules', name);
-      await this.updateStore(name, {
+      const pluginPath = path.resolve(this.remotePluginsDir, 'node_modules', name);
+      await this.manifest.updateExtensionConfig(name, {
         id: name,
         name: packageJson.name,
         version: packageJson.version,
@@ -116,17 +100,57 @@ export class PluginManager {
     }
   }
 
-  public async loadAll() {
-    await Promise.all(this.getAll({ enabled: true }).map((p) => this.load(p.id)));
+  // load all the plugins we check into composer source
+  public async loadBuiltinPlugins() {
+    log('Loading inherent plugins from: ', this.builtinPluginsDir);
+
+    // get all plugins with a package.json in the plugins dir
+    const plugins = await glob('*/package.json', { cwd: this.builtinPluginsDir, dot: true });
+    for (const p in plugins) {
+      // go through each plugin, make sure to add it to the manager store then load it as usual
+      const pluginPackageJsonPath = plugins[p];
+      const fullPath = path.join(this.builtinPluginsDir, pluginPackageJsonPath);
+      const pluginInstallPath = path.dirname(fullPath);
+      const packageJson = (await readJson(fullPath)) as PackageJSON;
+      if (packageJson && (!!packageJson.composer || !!packageJson.extendsComposer)) {
+        await this.manifest.updateExtensionConfig(packageJson.name, {
+          id: packageJson.name,
+          name: packageJson.name,
+          version: packageJson.version,
+          enabled: true,
+          // TODO: plugins can provide default configuration
+          configuration: {},
+          path: pluginInstallPath,
+          bundles: this.processBundles(pluginInstallPath, packageJson.composer?.bundles ?? []),
+          contributes: packageJson.composer?.contributes,
+          builtIn: true,
+        });
+        await pluginLoader.loadPluginFromFile(fullPath);
+      }
+    }
+  }
+
+  public loadRemotePlugin() {
+    // this should share the same code as loadInherentPlugin() but fetch the plugin with an "npm install" / fetch
+  }
+
+  // this will load remote plugins
+  public async loadRemotePlugins() {
+    await Promise.all(
+      this.getAll()
+        .filter((ext) => ext.enabled)
+        .map((p) => this.load(p.id))
+    );
   }
 
   public async load(id: string) {
     try {
       const modulePath = require.resolve(id, {
-        paths: [`${PLUGINS_DIR}/node_modules`],
+        paths: [`${this.remotePluginsDir}/node_modules`],
       });
       // eslint-disable-next-line @typescript-eslint/no-var-requires, security/detect-non-literal-require
       const plugin = require(modulePath);
+      console.log('got plugin: ', plugin);
 
       if (!plugin) {
         throw new Error('Plugin not found');
@@ -142,19 +166,19 @@ export class PluginManager {
   }
 
   public async enable(id: string) {
-    await this.updateStore(id, { enabled: true });
+    await this.manifest.updateExtensionConfig(id, { enabled: true });
 
     // re-load plugin
   }
 
   public async disable(id: string) {
-    await this.updateStore(id, { enabled: false });
+    await this.manifest.updateExtensionConfig(id, { enabled: false });
 
     // tear down plugin?
   }
 
   public async remove(id: string) {
-    const cmd = `npm uninstall --no-audit --prefix ${this.dir} ${id}`;
+    const cmd = `npm uninstall --no-audit --prefix ${this.remotePluginsDir} ${id}`;
     log('Removing %s', id);
     log(cmd);
 
@@ -162,11 +186,7 @@ export class PluginManager {
 
     log('%s', stdout);
 
-    const allPlugins = Store.get<PluginConfig[]>('plugins', []);
-    Store.set(
-      'plugins',
-      allPlugins.filter((p) => p.id !== id)
-    );
+    this.manifest.removeExtension(id);
   }
 
   public async search(query: string) {
@@ -225,29 +245,9 @@ export class PluginManager {
     return bundle.path;
   }
 
-  private async updateStore(pluginId: string, newSettings: Partial<PluginConfig>) {
-    let allPlugins = Store.get<PluginConfig[]>('plugins', []);
-    const currentSettings = allPlugins.find((p) => p.id === pluginId);
-
-    if (currentSettings) {
-      const updatedSettings = assign({}, currentSettings, newSettings);
-      allPlugins = allPlugins.map((p) => {
-        if (p.id === pluginId) {
-          return updatedSettings;
-        }
-
-        return p;
-      });
-    } else {
-      allPlugins.push(assign({} as PluginConfig, newSettings));
-    }
-
-    Store.set('plugins', allPlugins);
-  }
-
   private async getPackageJson(id: string): Promise<PackageJSON | undefined> {
     try {
-      const pluginPackagePath = path.resolve(this.dir, 'node_modules', id, 'package.json');
+      const pluginPackagePath = path.resolve(this.remotePluginsDir, 'node_modules', id, 'package.json');
       log('fetching package.json for %s at %s', id, pluginPackagePath);
       const packageJson = await readJson(pluginPackagePath);
       return packageJson as PackageJSON;

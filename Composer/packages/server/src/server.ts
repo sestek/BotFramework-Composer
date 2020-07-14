@@ -15,7 +15,7 @@ import * as rpc from 'vscode-ws-jsonrpc';
 import { IConnection, createConnection } from 'vscode-languageserver';
 import { LGServer } from '@bfc/lg-languageserver';
 import { LUServer } from '@bfc/lu-languageserver';
-import { pluginLoader } from '@bfc/plugin-loader';
+import { pluginLoader, PluginManager } from '@bfc/plugin-loader';
 import chalk from 'chalk';
 
 import { BotProjectService } from './services/project';
@@ -24,12 +24,11 @@ import { apiRouter } from './router/api';
 import { BASEURL } from './constants';
 import { attachLSPServer } from './utility/attachLSP';
 import log from './logger';
-import { PluginManager } from './models/plugins';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const session = require('express-session');
 
-export async function start(pluginDir?: string): Promise<number | string> {
+export async function start(): Promise<number | string> {
   const clientDirectory = path.resolve(require.resolve('@bfc/client'), '..');
   const app: Express = express();
   app.set('view engine', 'ejs');
@@ -48,7 +47,8 @@ export async function start(pluginDir?: string): Promise<number | string> {
   // load all the plugins that exist in the folder
   // pluginDir = pluginDir || path.resolve(__dirname, '../../plugins');
   // await pluginLoader.loadPluginsFromFolder(pluginDir);
-  await PluginManager.loadAll();
+  await PluginManager.getInstance().loadBuiltinPlugins();
+  //await PluginManager.loadRemotePlugins();
 
   const { login, authorize } = getAuthProvider();
 

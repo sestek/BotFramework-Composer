@@ -6,7 +6,7 @@ import { JSONSchema7 } from 'json-schema';
 // TODO: this will be possible when ifilestorage is in a shared module
 // import { IFileStorage } from '../../../server/src/models/storage/interface';
 
-import { ComposerPluginRegistration } from './composerPluginRegistration';
+import { ComposerPluginRegistration } from '../loader/composerPluginRegistration';
 
 export interface PublishResult {
   message: string;

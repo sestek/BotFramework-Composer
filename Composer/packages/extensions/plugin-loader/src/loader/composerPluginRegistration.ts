@@ -6,8 +6,8 @@ import { Debugger } from 'debug';
 import { JSONSchema7 } from 'json-schema';
 
 import { PluginLoader } from './pluginLoader';
-import log from './logger';
-import { PublishPlugin, RuntimeTemplate, BotTemplate } from './types';
+import log from '../logger';
+import { PublishPlugin, RuntimeTemplate, BotTemplate } from '../types/types';
 
 export class ComposerPluginRegistration {
   public loader: PluginLoader;

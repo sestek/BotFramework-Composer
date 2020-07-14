@@ -10,9 +10,10 @@ import { pathToRegexp } from 'path-to-regexp';
 import glob from 'globby';
 
 import { ComposerPluginRegistration } from './composerPluginRegistration';
-import { UserIdentity, ExtensionCollection } from './types';
-import log from './logger';
+import { UserIdentity, ExtensionCollection } from '../types/types';
+import log from '../logger';
 
+// used to actually call the plugin's main function and inject the composer API in the plugin's node context
 export class PluginLoader {
   private _passport: passport.PassportStatic;
   private _webserver: Express | undefined;
