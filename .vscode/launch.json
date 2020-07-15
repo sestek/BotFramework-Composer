@@ -54,6 +54,7 @@
       "outFiles": [
         "./build/*"
       ],
+      "preLaunchTask": "server: build",
       "outputCapture": "std",
       "cwd": "${workspaceFolder}/Composer/packages/server"
     },
