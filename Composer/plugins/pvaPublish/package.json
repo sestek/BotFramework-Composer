@@ -1,14 +1,25 @@
 {
-  "name": "@bfc/plugin-pva-publish",
+  "name": "plugin-pva-publish",
   "version": "1.0.0",
   "scripts": {
     "build:ui": "webpack --config webpack-window.config.js",
-    "build:node": "tsc --project tsconfig.node.json"
+    "build:node": "tsc --project tsconfig.node.json",
+    "build:vendors": "webpack --config webpack-vendors.config.js"
   },
   "composer": {
     "bundles": [
-      { "id": "pvaPublish0", "path": "dist/bundle.js" }
-    ]
+      {
+        "id": "pvaPublish0",
+        "path": "dist/bundle.js"
+      }
+    ],
+    "contributes": {
+      "views": {
+        "publish": {
+          "bundleId": "pvaPublish0"
+        }
+      }
+    }
   },
   "extendsComposer": true,
   "description": "Publish bot to PVA (Preview)",
@@ -21,6 +32,8 @@
   "devDependencies": {
     "html-webpack-inline-source-plugin": "^1.0.0-beta.2",
     "html-webpack-plugin": "^4.3.0",
+    "ts-loader": "^8.0.0",
+    "typescript": "^3.9.6",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.12"
   }

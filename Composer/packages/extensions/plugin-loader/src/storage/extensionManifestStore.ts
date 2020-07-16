@@ -36,9 +36,10 @@ export interface PluginConfig {
   name: string;
   enabled: boolean;
   version: string;
-  builtIn?: boolean; // special property only used in the in-memory representation of plugins to flag as a built-in
+  /** Special property only used in the in-memory representation of plugins to flag as a built-in. Not written to disk. */
+  builtIn?: boolean;
   configuration: object;
-  /** path where module is installed */
+  /** Path where module is installed */
   path: string;
   bundles: PluginBundle[];
   contributes: PluginContributes;
@@ -47,6 +48,13 @@ export interface PluginConfig {
 const DEFAULT_MANIFEST: ExtensionManifest = {
   extensions: {},
 };
+
+function omitBuiltinProperty(key: string, value: string) {
+  if (key && key === 'builtIn') {
+    return undefined;
+  }
+  return value;
+}
 
 /** In-memory representation of extension-manifest.json as well as reads / writes data to disk. */
 export class ExtensionManifestStore {
@@ -79,7 +87,7 @@ export class ExtensionManifestStore {
   // write manifest from memory to disk
   private writeManifestToDisk() {
     try {
-      writeJsonSync(this.manifestPath, this.manifest); // TODO: do not write built-in property to manifest
+      writeJsonSync(this.manifestPath, this.manifest, { replacer: omitBuiltinProperty });
     } catch (e) {
       log('Error writing %s: %s', this.manifestPath, e);
     }

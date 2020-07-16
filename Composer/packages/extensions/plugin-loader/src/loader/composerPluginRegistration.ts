@@ -56,13 +56,19 @@ export class ComposerPluginRegistration {
   /**************************************************************************************
    * Publish related features
    *************************************************************************************/
-  public async addPublishMethod(plugin: PublishPlugin, schema?: JSONSchema7, instructions?: string) {
+  public async addPublishMethod(
+    plugin: PublishPlugin,
+    schema?: JSONSchema7,
+    instructions?: string,
+    hasView: boolean = false
+  ) {
     log('registering publish method', this.name);
     this.loader.extensions.publish[this.name] = {
       plugin: this,
       instructions: instructions,
       methods: plugin,
       schema: schema,
+      hasView,
     };
   }
 

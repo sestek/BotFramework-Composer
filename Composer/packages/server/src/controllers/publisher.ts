@@ -22,12 +22,13 @@ export const PublishController = {
       Object.values(pluginLoader.extensions.publish)
         .filter((extension) => extension.plugin.name !== defaultPublishConfig.type)
         .map((extension) => {
-          const { plugin, methods, schema, instructions } = extension;
+          const { plugin, methods, schema, instructions, hasView } = extension;
 
           return {
             name: plugin.name,
             description: plugin.description,
             instructions: instructions,
+            hasView,
             schema,
             features: {
               history: typeof methods.history === 'function',

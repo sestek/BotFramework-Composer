@@ -115,7 +115,7 @@ async function loadServer() {
     // only change paths if packaged electron app
     const unpackedDir = getUnpackedAsarPath();
     process.env.COMPOSER_RUNTIME_FOLDER = join(unpackedDir, 'runtime');
-    pluginsDir = join(unpackedDir, 'build', 'plugins');
+    process.env.COMPOSER_BUILTIN_PLUGINS_FOLDER = join(unpackedDir, 'build', 'plugins');
   }
 
   // only create a new data directory if packaged electron app
@@ -125,7 +125,7 @@ async function loadServer() {
 
   log('Starting server...');
   const { start } = await import('@bfc/server');
-  serverPort = await start(pluginsDir);
+  serverPort = await start();
   log(`Server started at port: ${serverPort}`);
 }
 

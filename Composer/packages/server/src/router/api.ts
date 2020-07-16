@@ -9,7 +9,6 @@ import { PublishController } from '../controllers/publisher';
 import { AssetController } from '../controllers/asset';
 import { EjectController } from '../controllers/eject';
 import * as PluginsController from '../controllers/plugins';
-import { PluginManager } from '@bfc/plugin-loader';
 
 const router: Router = express.Router({});
 
@@ -48,13 +47,6 @@ router.post('/publish/:projectId/publish/:target', PublishController.publish);
 router.get('/publish/:projectId/history/:target', PublishController.history);
 router.post('/publish/:projectId/rollback/:target', PublishController.rollback);
 
-// testing
-router.get('/publish/targets', (req, res) => {
-  const allPlugins = PluginManager.getInstance().getAll();
-  const publishTargets = allPlugins.filter((p) => !!p.contributes?.views?.publish);
-  res.status(200).send(publishTargets);
-});
-
 router.get('/publish/:method', PublishController.publish);
 
 // runtime ejection
@@ -72,6 +64,7 @@ router.patch('/plugins/toggle', PluginsController.togglePlugin);
 router.get('/plugins/search', PluginsController.searchPlugins);
 router.get('/plugins/:id/bundles', PluginsController.getAllBundles);
 router.get('/plugins/:id/bundles/:bundleId', PluginsController.getBundle);
+router.get('/plugins/:id/view/:view', PluginsController.getBundleForView);
 
 const ErrorHandler = (handler: RequestHandler) => (req: Request, res: Response, next: NextFunction) => {
   Promise.resolve(handler(req, res, next)).catch(next);

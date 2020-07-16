@@ -62,6 +62,7 @@ export interface PublishType {
   description: string;
   instructions?: string;
   schema?: JSONSchema7;
+  hasView: boolean;
   features: {
     history: boolean;
     publish: boolean;
