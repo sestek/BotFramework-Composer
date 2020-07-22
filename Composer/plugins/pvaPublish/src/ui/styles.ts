@@ -8,3 +8,13 @@ export const root: CSSProperties = {
   backgroundColor: 'white',
   padding: 32,
 };
+
+export const row: CSSProperties = {
+  display: 'flex',
+  flexFlow: 'row nowrap',
+};
+
+export const col: CSSProperties = {
+  display: 'flex',
+  flexFlow: 'column nowrap',
+};
