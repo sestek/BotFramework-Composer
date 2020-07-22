@@ -11,8 +11,7 @@ import { runtimeFolder } from '../settings/env';
 
 const defaultPublishConfig = {
   name: 'default',
-  //type: 'localpublish',
-  type: 'abrown-sample-plugin',
+  type: 'localpublish',
   configuration: JSON.stringify({}),
 };
 const DEFAULT_RUNTIME = 'dotnet';

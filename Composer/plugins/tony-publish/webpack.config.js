@@ -7,6 +7,7 @@ module.exports = {
   output: {
     filename: 'bundle.js',
     path: resolve(__dirname, 'dist'),
+  },
   externals: {
     // expect react & react-dom to be available in the extension host iframe
     react: 'React',

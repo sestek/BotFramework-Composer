@@ -7,15 +7,15 @@ import formatMessage from 'format-message';
 import { Dropdown, IDropdownOption } from 'office-ui-fabric-react/lib/Dropdown';
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import { DialogFooter } from 'office-ui-fabric-react/lib/Dialog';
-import { Fragment, useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { Fragment, useState, useMemo, useEffect } from 'react';
 import { PrimaryButton, DefaultButton } from 'office-ui-fabric-react/lib/Button';
 import { JsonEditor } from '@bfc/code-editor';
-import * as ReactDOM from 'react-dom';
 
 import { PublishTarget, PublishType } from '../../store/types';
 import { useStoreContext } from '../../hooks/useStoreContext';
 
 import { label } from './styles';
+import { PluginHost } from '../../components/PluginHost/PluginHost';
 
 interface CreatePublishTargetProps {
   closeDialog: () => void;
@@ -25,51 +25,23 @@ interface CreatePublishTargetProps {
   updateSettings: (name: string, type: string, configuration: string) => Promise<void>;
 }
 
-function getTargetUI(pluginName: string) {
-  console.log('getting target ui for: ', pluginName);
-  return <TargetUI pluginName={pluginName}></TargetUI>;
+declare global {
+  interface Window {
+    Composer: ComposerClientAPI;
+  }
 }
 
-interface TargetUIProps {
-  pluginName: string;
+interface ComposerClientAPI {
+  publish: PublishAPI;
 }
 
-// TODO: this should be abstracted out into a generic component that can accept a type of view,
-// the plugin name, and then load the plugin using the below logic
-const TargetUI: React.FC<TargetUIProps> = (props) => {
-  const targetRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // load the plugin and pass it the render function
-    const renderPluginView = async () => {
-      if (props.pluginName) {
-        // we want to load up the bundle for the specified plugin and then render it
-        const pluginScriptId = `plugin-publish-${props.pluginName}`;
-        const existingBundleScript = document.getElementById(pluginScriptId);
-        if (!existingBundleScript) {
-          // load up the bundle
-          console.log('Loading bundle for ', props.pluginName);
-          const bundleScript = document.createElement('script');
-          bundleScript.id = pluginScriptId;
-          bundleScript.src = `/api/plugins/${props.pluginName}/view/publish`;
-          bundleScript.async = true;
-          await new Promise((resolve) => {
-            bundleScript.onload = () => {
-              console.log(`Bundle onload complete for ${pluginScriptId}. Resolving!`);
-              resolve();
-            };
-            document.body.appendChild(bundleScript);
-          });
-        }
-        const Plugin = window['composer-plugins'][props.pluginName] as React.FC<any>;
-        ReactDOM.render(<Plugin />, targetRef.current);
-      }
-    };
-    renderPluginView();
-  }, [props.pluginName, targetRef]);
-
-  return <div ref={targetRef}></div>;
-};
+interface PublishAPI {
+  /** Let's composer know that the UI is ready to save the publish target */
+  setReady?: (ready: boolean) => void;
+  /** Let's composer know the most up-to-date publish configuration */
+  onChangeConfig?: (updatedConfig: any) => void;
+  submitConfig?: (config: any) => void;
+}
 
 const CreatePublishTarget: React.FC<CreatePublishTargetProps> = (props) => {
   const [targetType, setTargetType] = useState<string | undefined>(props.current?.type);
@@ -141,10 +113,29 @@ const CreatePublishTarget: React.FC<CreatePublishTargetProps> = (props) => {
     }
   };
 
+  useEffect(() => {
+    const submitConfig = async (config) => {
+      if (targetType) {
+        console.log(`Got config from plugin ${name}: ${config}`);
+        await props.updateSettings(name, targetType, JSON.stringify(config) || '{}');
+        props.closeDialog();
+      }
+    };
+    // hook up api to window
+    if (!window.Composer) {
+      window.Composer = { publish: { submitConfig: undefined } };
+    }
+    window.Composer.publish.submitConfig = submitConfig;
+    return () => {
+      // clean up the window object
+      delete window.Composer.publish.submitConfig;
+    };
+  }, [targetType, name]);
+
   const publishTargetContent = useMemo(() => {
-    if (hasView) {
-      // render custom view
-      return getTargetUI(targetType);
+    if (hasView && targetType) {
+      // render custom plugin view
+      return <PluginHost pluginName={targetType} pluginType={'publish'}></PluginHost>;
     }
     // render default instruction / schema editor view
     return (
@@ -165,7 +156,7 @@ const CreatePublishTarget: React.FC<CreatePublishTargetProps> = (props) => {
 
   return (
     <Fragment>
-      <form onSubmit={submit}>
+      <form /**onSubmit={submit}*/>
         <TextField
           defaultValue={props.current ? props.current.name : ''}
           errorMessage={errorMessage}
@@ -181,7 +172,7 @@ const CreatePublishTarget: React.FC<CreatePublishTargetProps> = (props) => {
           onChange={updateType}
         />
         {publishTargetContent}
-        <button hidden disabled={isDisable()} type="submit" />
+        {/* <button hidden disabled={isDisable()} type="submit" /> */}
       </form>
       <DialogFooter>
         <DefaultButton text={formatMessage('Cancel')} onClick={props.closeDialog} />

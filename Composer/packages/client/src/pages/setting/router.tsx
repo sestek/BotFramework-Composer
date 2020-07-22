@@ -10,7 +10,7 @@ import { About } from '../about/About';
 import { DialogSettings } from './dialog-settings/DialogSettings';
 import { AppSettings } from './app-settings/AppSettings';
 import { RuntimeSettings } from './runtime-settings/RuntimeSettings';
-import { Plugins } from './plugins';
+import { Plugins } from './plugins/Plugins';
 
 export const SettingsRoutes = React.memo(({ projectId }: { projectId: string }) => (
   <ErrorBoundary>

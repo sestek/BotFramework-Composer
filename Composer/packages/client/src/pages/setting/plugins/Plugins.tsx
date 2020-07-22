@@ -20,7 +20,8 @@ import axios from 'axios';
 
 import { Plugin } from '../../../store/types';
 import { useStoreContext } from '../../../hooks/useStoreContext';
-import { IToolBarItem, ToolBar } from '../../../components/ToolBar/ToolBar';
+import { ToolBar } from '../../../components/ToolBar/ToolBar';
+import { IToolBarItem } from '../../../components/ToolBar/ToolBar.types';
 import httpClient from '../../../utils/httpUtil';
 
 const Plugins: React.FC<RouteComponentProps> = () => {
