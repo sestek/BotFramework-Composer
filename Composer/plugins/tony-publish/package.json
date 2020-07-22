@@ -1,0 +1,37 @@
+{
+  "name": "tony-publish",
+  "version": "1.0.0",
+  "scripts": {
+    "build:ui": "webpack --config webpack.config.js",
+    "build:node": "tsc --project tsconfig.node.json"
+  },
+  "composer": {
+    "bundles": [
+      {
+        "id": "tonyPublish",
+        "path": "dist/bundle.js"
+      }
+    ],
+    "contributes": {
+      "views": {
+        "publish": {
+          "bundleId": "tonyPublish"
+        }
+      }
+    }
+  },
+  "extendsComposer": true,
+  "description": "Publish bot to somewhere!",
+  "main": "dist/index.js",
+  "dependencies": {
+    "react": "^16.13.0",
+    "react-dom": "^16.13.0"
+  },
+  "devDependencies": {
+    "html-webpack-plugin": "^4.3.0",
+    "ts-loader": "^8.0.0",
+    "typescript": "^3.9.6",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.12"
+  }
+}
