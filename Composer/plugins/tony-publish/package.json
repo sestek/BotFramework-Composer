@@ -2,20 +2,28 @@
   "name": "tony-publish",
   "version": "1.0.0",
   "scripts": {
-    "build:ui": "webpack --config webpack.config.js",
+    "build:ui": "webpack --config webpack.config.js && webpack --config webpack-page.config.js",
     "build:node": "tsc --project tsconfig.node.json"
   },
   "composer": {
     "bundles": [
       {
-        "id": "tonyPublish",
+        "id": "publish",
         "path": "dist/bundle.js"
+      },
+      {
+        "id": "page",
+        "path": "dist/page.js"
       }
     ],
     "contributes": {
       "views": {
         "publish": {
-          "bundleId": "tonyPublish"
+          "bundleId": "publish"
+        },
+        "page": {
+          "bundleId": "page",
+          "label": "Tony Publish"
         }
       }
     }

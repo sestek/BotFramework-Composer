@@ -23,11 +23,11 @@ export const useLinks = () => {
   const { state } = useContext(StoreContext);
   const { projectId, dialogs, designPageLocation, plugins } = state;
   const openedDialogId = designPageLocation.dialogId || dialogs.find(({ isRoot }) => isRoot === true)?.id || 'Main';
+  // add page-contributing plugins
   const pluginPages = plugins.reduce((pages, p) => {
     const pageConfig = p.contributes?.views?.page;
-
-    if (pageConfig && pageConfig.length > 0) {
-      return pages.concat(pageConfig.map((c) => ({ ...c, pluginId: p.id })));
+    if (pageConfig) {
+      pages.push({ ...pageConfig, id: p.id });
     }
 
     return pages;

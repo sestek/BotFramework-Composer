@@ -9,6 +9,17 @@ interface PluginHostProps {
   pluginType?: string; // TODO: create an enum for all of these
 }
 
+function injectScript(doc: Document, id: string, src: string, async: boolean, onload?: () => any) {
+  if (!doc.getElementById(id)) {
+    const script = document.createElement('script');
+    Object.assign(script, { id, src, async, onload });
+    doc.body.appendChild(script);
+  }
+}
+
+/** Abstraction that will render an iframe injected with all the necessary UI plugin scripts,
+ *  and then serve the plugin's client bundle.
+ */
 export const PluginHost: React.FC<PluginHostProps> = (props) => {
   const targetRef = useRef<HTMLIFrameElement>(null);
 
@@ -19,54 +30,23 @@ export const PluginHost: React.FC<PluginHostProps> = (props) => {
       if (pluginName) {
         const iframeWindow = targetRef.current?.contentWindow as Window;
         const iframeDocument = targetRef.current?.contentDocument as Document;
-        const iframeBody = targetRef.current?.contentDocument?.body as Element;
-        const root = document.createElement('div');
-        if (!iframeDocument.getElementById('plugin-root')) {
-          root.id = 'plugin-root';
-          iframeBody.appendChild(root);
-        }
-        // inject the react / reactdom  bundles
-        if (!iframeDocument.getElementById('react-bundle')) {
-          const script1 = document.createElement('script');
-          script1.src = '/react-bundle.js';
-          script1.id = 'react-bundle';
-          script1.onload = () => {
-            console.log('react loaded in iframe');
-          };
-          iframeBody.appendChild(script1);
-        }
-        if (!iframeDocument.getElementById('react-dom-bundle')) {
-          const script2 = document.createElement('script');
-          script2.src = '/react-dom-bundle.js';
-          script2.id = 'react-dom-bundle';
-          script2.onload = () => {
-            console.log('react-dom loaded in iframe');
-          };
-          iframeBody.appendChild(script2);
-        }
-        // load the preload script to setup the API
-        if (!iframeDocument.getElementById('preload-bundle')) {
-          const script3 = document.createElement('script');
-          script3.src = '/plugin-host-preload.js';
-          script3.id = 'preload-bundle';
-          script3.onload = () => {
-            iframeWindow['Composer']['submitPublish'] = (config) => window.Composer?.publish?.submitConfig?.(config);
-          };
-          iframeBody.appendChild(script3);
-        }
 
-        // load the bundle for the specified plugin
+        // inject the react / react-dom bundles
+        injectScript(iframeDocument, 'react-bundle', '/react-bundle.js', false);
+        injectScript(iframeDocument, 'react-dom-bundle', '/react-dom-bundle.js', false);
+        // // load the preload script to setup the API
+        injectScript(iframeDocument, 'preload-bundle', '/plugin-host-preload.js', false, () => {
+          iframeWindow['Composer']['submitPublish'] = (config) => window.Composer?.publish?.submitConfig?.(config);
+        });
+
+        //load the bundle for the specified plugin
         const pluginScriptId = `plugin-${pluginType}-${pluginName}`;
-        const bundleScript = document.createElement('script');
-        bundleScript.id = pluginScriptId;
-        bundleScript.src = `/api/plugins/${pluginName}/view/${pluginType}`;
-        //bundleScript.async = true;
         await new Promise((resolve) => {
-          bundleScript.onload = () => {
+          const cb = () => {
             console.log(`Bundle onload complete for ${pluginScriptId}. Resolving!`);
             resolve();
           };
-          iframeBody.appendChild(bundleScript);
+          injectScript(iframeDocument, pluginScriptId, `/api/plugins/${pluginName}/view/${pluginType}`, false, cb); // Do we want to make this async since it could be a large file?
         });
       }
     };

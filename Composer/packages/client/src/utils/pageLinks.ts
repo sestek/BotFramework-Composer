@@ -5,7 +5,7 @@ import formatMessage from 'format-message';
 export const topLinks = (
   projectId: string,
   openedDialogId: string,
-  pluginPages: { id: string; name: string; icon?: string; when?: string; pluginId: string }[]
+  pluginPages: { id: string; label: string; icon?: string; when?: string }[]
 ) => {
   const botLoaded = !!projectId;
   let links = [
@@ -67,11 +67,11 @@ export const topLinks = (
   if (pluginPages.length > 0) {
     pluginPages.forEach((p) => {
       links.push({
-        to: `${p.pluginId}/${p.id}`,
+        to: `page/${p.id}`,
         iconName: p.icon ?? 'StatusCircleQuestionMark',
-        labelName: p.name,
+        labelName: p.label,
         exact: true,
-        disabled: p.when === 'botLoaded' ? !botLoaded : false,
+        disabled: false,
       });
     });
   }
