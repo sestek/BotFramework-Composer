@@ -27,7 +27,7 @@ export const PluginHost: React.FC<PluginHostProps> = (props) => {
     // load the plugin and pass it the render function
     const { pluginName, pluginType } = props;
     const renderPluginView = async () => {
-      if (pluginName) {
+      if (pluginName && pluginType) {
         const iframeWindow = targetRef.current?.contentWindow as Window;
         const iframeDocument = targetRef.current?.contentDocument as Document;
 

@@ -78,8 +78,6 @@ module.exports = {
   appNodeModules: resolveApp('../../node_modules'),
   publicUrl: getPublicUrl(resolveApp('package.json')),
   servedPath: getServedPath(resolveApp('package.json')),
-  pluginIndexJs: resolveModule(resolveApp, 'src/plugin-container/index'),
-  pluginContainerHtml: resolveApp('public/plugins.html'),
 };
 
 module.exports.moduleFileExtensions = moduleFileExtensions;
