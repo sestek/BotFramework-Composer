@@ -22,7 +22,7 @@ export const Main: React.FC<{}> = (props) => {
 
   const handleClick = useCallback(() => {
     console.log('Submitting config to composer!');
-    (window as any).Composer.submitPublish({ val1, val2, val3 });
+    (window as any).Composer.submitPublishConfig({ val1, val2, val3 });
   }, [val1, val2, val3]);
 
   useEffect(() => {

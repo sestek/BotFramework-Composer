@@ -3,10 +3,20 @@ import { jsx } from '@emotion/core';
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
 import { iframeStyle } from './styles';
+import { PluginAPI } from '../../plugins/api';
+
+type PluginType = 'publish' | 'page' | 'storage' | 'create';
 
 interface PluginHostProps {
   pluginName?: string;
-  pluginType?: string; // TODO: create an enum for all of these
+  pluginType?: PluginType;
+}
+
+function attachPluginAPI(win: Window, type: PluginType) {
+  const api = PluginAPI[type];
+  for (const method in api) {
+    win['Composer'][method] = (...args) => api[method](...args);
+  }
 }
 
 function injectScript(doc: Document, id: string, src: string, async: boolean, onload?: () => any) {
@@ -36,7 +46,7 @@ export const PluginHost: React.FC<PluginHostProps> = (props) => {
         injectScript(iframeDocument, 'react-dom-bundle', '/react-dom-bundle.js', false);
         // // load the preload script to setup the API
         injectScript(iframeDocument, 'preload-bundle', '/plugin-host-preload.js', false, () => {
-          iframeWindow['Composer']['submitPublish'] = (config) => window.Composer?.publish?.submitConfig?.(config);
+          attachPluginAPI(iframeWindow, pluginType);
         });
 
         //load the bundle for the specified plugin

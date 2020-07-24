@@ -16,6 +16,7 @@ import { useStoreContext } from '../../hooks/useStoreContext';
 
 import { label } from './styles';
 import { PluginHost } from '../../components/PluginHost/PluginHost';
+import { PluginAPI } from '../../plugins/api';
 
 interface CreatePublishTargetProps {
   closeDialog: () => void;
@@ -23,24 +24,6 @@ interface CreatePublishTargetProps {
   targets: PublishTarget[];
   types: PublishType[];
   updateSettings: (name: string, type: string, configuration: string) => Promise<void>;
-}
-
-declare global {
-  interface Window {
-    Composer: ComposerClientAPI;
-  }
-}
-
-interface ComposerClientAPI {
-  publish: PublishAPI;
-}
-
-interface PublishAPI {
-  /** Let's composer know that the UI is ready to save the publish target */
-  setReady?: (ready: boolean) => void;
-  /** Let's composer know the most up-to-date publish configuration */
-  onChangeConfig?: (updatedConfig: any) => void;
-  submitConfig?: (config: any) => void;
 }
 
 const CreatePublishTarget: React.FC<CreatePublishTargetProps> = (props) => {
@@ -121,14 +104,11 @@ const CreatePublishTarget: React.FC<CreatePublishTargetProps> = (props) => {
         props.closeDialog();
       }
     };
-    // hook up api to window
-    if (!window.Composer) {
-      window.Composer = { publish: { submitConfig: undefined } };
-    }
-    window.Composer.publish.submitConfig = submitConfig;
+    PluginAPI.publish.submitPublishConfig = submitConfig;
+
     return () => {
-      // clean up the window object
-      delete window.Composer.publish.submitConfig;
+      // this API will no longer work once the component is unmounted
+      PluginAPI.disablePublishConfig();
     };
   }, [targetType, name]);
 
