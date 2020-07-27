@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { useEffect, useCallback, useState } from 'react';
+import { submitPublishConfig } from '@bfc/client-plugin-lib';
+
 import { root, row } from './styles';
 
 export const Main: React.FC<{}> = (props) => {
@@ -22,7 +24,7 @@ export const Main: React.FC<{}> = (props) => {
 
   const handleClick = useCallback(() => {
     console.log('Submitting config to composer!');
-    (window as any).Composer.submitPublishConfig({ val1, val2, val3 });
+    submitPublishConfig({ val1, val2, val3 });
   }, [val1, val2, val3]);
 
   useEffect(() => {

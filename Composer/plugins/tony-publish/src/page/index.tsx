@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useCallback, useState } from 'react';
+import { render } from '@bfc/client-plugin-lib';
 
 const Main: React.FC<{}> = (props) => {
   const [text, setText] = useState('');
@@ -17,4 +18,4 @@ const Main: React.FC<{}> = (props) => {
   );
 };
 
-window['Composer'].render(<Main />);
+render(<Main />);
