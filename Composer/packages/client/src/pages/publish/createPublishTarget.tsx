@@ -130,13 +130,14 @@ const CreatePublishTarget: React.FC<CreatePublishTargetProps> = (props) => {
           value={config}
           onChange={updateConfig}
         />
+        <button hidden disabled={isDisable()} type="submit" />
       </Fragment>
     );
   }, [targetType, instructions, schema, hasView]);
 
   return (
     <Fragment>
-      <form /**onSubmit={submit}*/>
+      <form onSubmit={submit}>
         <TextField
           defaultValue={props.current ? props.current.name : ''}
           errorMessage={errorMessage}
@@ -152,7 +153,6 @@ const CreatePublishTarget: React.FC<CreatePublishTargetProps> = (props) => {
           onChange={updateType}
         />
         {publishTargetContent}
-        {/* <button hidden disabled={isDisable()} type="submit" /> */}
       </form>
       <DialogFooter>
         <DefaultButton text={formatMessage('Cancel')} onClick={props.closeDialog} />

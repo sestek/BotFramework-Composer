@@ -1,15 +1,18 @@
 {
-  "name": "tony-publish",
+  "name": "sample-ui-plugin",
   "version": "1.0.0",
+  "license": "ISC",
   "scripts": {
-    "build:ui": "webpack --config webpack.config.js && webpack --config webpack-page.config.js",
-    "build:node": "tsc --project tsconfig.node.json"
+    "build": "yarn clean && yarn build:client && yarn build:node",
+    "build:client": "webpack --config webpack.config.js",
+    "build:node": "tsc --project tsconfig.node.json",
+    "clean": "rimraf dist"
   },
   "composer": {
     "bundles": [
       {
         "id": "publish",
-        "path": "dist/bundle.js"
+        "path": "dist/publish.js"
       },
       {
         "id": "page",
@@ -23,13 +26,13 @@
         },
         "page": {
           "bundleId": "page",
-          "label": "Tony Publish"
+          "label": "Sample UI Plugin"
         }
       }
     }
   },
   "extendsComposer": true,
-  "description": "Publish bot to somewhere!",
+  "description": "Publish using custom UI",
   "main": "dist/index.js",
   "dependencies": {
     "@bfc/client-plugin-lib": "file:../../packages/extensions/client-plugin-lib",
@@ -38,6 +41,7 @@
   },
   "devDependencies": {
     "html-webpack-plugin": "^4.3.0",
+    "rimraf": "^3.0.2",
     "ts-loader": "^8.0.0",
     "typescript": "^3.9.6",
     "webpack": "^4.43.0",

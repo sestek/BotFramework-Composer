@@ -2,14 +2,16 @@ const { resolve } = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  entry: './src/ui/index.tsx',
+  entry: {
+    page: './src/client/page/index.tsx',
+    publish: './src/client/publish/index.tsx',
+  },
   mode: 'production',
   output: {
-    filename: 'bundle.js',
     path: resolve(__dirname, 'dist'),
   },
   externals: {
-    // expect react & react-dom to be available in the extension host iframe
+    // expect react & react-dom to be available in the extension host iframe globally under "React" and "ReactDOM" variables
     react: 'React',
     'react-dom': 'ReactDOM',
   },
@@ -21,7 +23,9 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './src/ui/index.html',
+      // only want to run the publish UI locally
+      excludeChunks: ['page'],
+      template: './src/client/index.html',
     }),
   ],
 };

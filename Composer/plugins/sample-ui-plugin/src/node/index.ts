@@ -52,11 +52,6 @@ async function getStatus(config, project, user) {
 }
 
 async function publish(config, project, metadata, user) {
-  console.log('publishing: ');
-  console.log(config);
-  console.log(project);
-  console.log(metadata);
-  console.log(user);
   const options = {
     method: 'POST',
     body: JSON.stringify({ config, project, metadata, user }),
