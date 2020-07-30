@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { useEffect, useCallback, useState } from 'react';
-import { submitPublishConfig } from '@bfc/client-plugin-lib';
+import { setConfigIsValid, setPublishConfig, useConfigBeingEdited } from '@bfc/client-plugin-lib';
 
 import { root, row } from './styles';
 
 export const Main: React.FC<{}> = (props) => {
-  const [val1, setVal1] = useState('');
-  const [val2, setVal2] = useState('');
-  const [val3, setVal3] = useState('');
-  const [ready, setReady] = useState(false);
+  const [configBeingEdited] = useConfigBeingEdited();
+  const [val1, setVal1] = useState(configBeingEdited ? configBeingEdited.val1 : '');
+  const [val2, setVal2] = useState(configBeingEdited ? configBeingEdited.val2 : '');
+  const [val3, setVal3] = useState(configBeingEdited ? configBeingEdited.val3 : '');
 
   const updateVal1 = useCallback((ev) => {
     setVal1(ev.target.value);
@@ -22,14 +22,12 @@ export const Main: React.FC<{}> = (props) => {
     setVal3(ev.target.value);
   }, []);
 
-  const handleClick = useCallback(() => {
-    console.log('Submitting config to composer!');
-    submitPublishConfig({ val1, val2, val3 });
-  }, [val1, val2, val3]);
-
   useEffect(() => {
+    setPublishConfig({ val1, val2, val3 });
     if (val1 && val2 && val3) {
-      setReady(true);
+      setConfigIsValid(true);
+    } else {
+      setConfigIsValid(false);
     }
   }, [val1, val2, val3]);
 
@@ -46,11 +44,6 @@ export const Main: React.FC<{}> = (props) => {
       <div style={row}>
         <label htmlFor={'val3'}>Value 3:</label>
         <input id={'val3'} placeholder={'Enter a value...'} value={val3} onChange={updateVal3}></input>
-      </div>
-      <div style={row}>
-        <button disabled={!ready} onClick={handleClick} type="button">
-          Submit
-        </button>
       </div>
     </div>
   );

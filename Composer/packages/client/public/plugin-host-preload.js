@@ -1,3 +1,11 @@
+// add default doc styles
+if (!document.getElementById('plugin-host-default-styles')) {
+  const styles = document.createElement('style');
+  styles.id = 'plugin-host-default-styles';
+  styles.type = 'text/css';
+  styles.appendChild(document.createTextNode('html, body { padding: 0; margin: 0; }'));
+  document.head.appendChild(styles);
+}
 // add the react mount point
 if (!document.getElementById('plugin-root')) {
   const root = document.createElement('div');

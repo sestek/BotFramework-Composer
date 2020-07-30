@@ -8,12 +8,26 @@ interface StorageAPI {}
 
 interface PageAPI {}
 
-interface PublishAPI {
-  submitPublishConfig: (config: any) => Promise<void>;
+interface PublishConfig {
+  [key: string]: any;
 }
 
-async function disabledSumitPublishConfig() {
-  console.error('submitPublishConfig() cannot be used at this moment.');
+interface PublishAPI {
+  setConfigIsValid: (valid: boolean) => void;
+  setPublishConfig: (config: PublishConfig) => void;
+  useConfigBeingEdited: (() => PublishConfig[]) | (() => void);
+}
+
+function disabledSetPublishConfig() {
+  console.error('setPublishConfig() cannot be used at this moment.');
+}
+
+function disabledSetConfigIsValid() {
+  console.error('setConfigIsValid() cannot be used at this moment.');
+}
+
+function disabledUseConfigBeingEdited() {
+  console.error('useConfigBeingEdited() cannot be used at this moment.');
 }
 
 class API implements IAPI {
@@ -21,12 +35,22 @@ class API implements IAPI {
 
   constructor() {
     this.publish = {
-      submitPublishConfig: disabledSumitPublishConfig,
+      setConfigIsValid: disabledSetConfigIsValid,
+      setPublishConfig: disabledSetPublishConfig,
+      useConfigBeingEdited: disabledUseConfigBeingEdited,
     };
   }
 
-  public disablePublishConfig() {
-    this.publish.submitPublishConfig = disabledSumitPublishConfig;
+  public disableSetConfigIsValid() {
+    this.publish.setConfigIsValid = disabledSetConfigIsValid;
+  }
+
+  public disableSetPublishConfig() {
+    this.publish.setPublishConfig = disabledSetPublishConfig;
+  }
+
+  public disableUseConfigBeingEdited() {
+    this.publish.useConfigBeingEdited = disabledUseConfigBeingEdited;
   }
 }
 

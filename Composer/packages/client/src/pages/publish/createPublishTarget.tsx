@@ -27,10 +27,12 @@ interface CreatePublishTargetProps {
 }
 
 const CreatePublishTarget: React.FC<CreatePublishTargetProps> = (props) => {
-  const [targetType, setTargetType] = useState<string | undefined>(props.current?.type);
-  const [name, setName] = useState(props.current ? props.current.name : '');
-  const [config, setConfig] = useState(props.current ? JSON.parse(props.current.configuration) : undefined);
+  const { current } = props;
+  const [targetType, setTargetType] = useState<string | undefined>(current?.type);
+  const [name, setName] = useState(current ? current.name : '');
+  const [config, setConfig] = useState(current ? JSON.parse(current.configuration) : undefined);
   const [errorMessage, setErrorMsg] = useState('');
+  const [pluginConfigIsValid, setPluginConfigIsValid] = useState(false);
   const {
     state: { userSettings },
   } = useStoreContext();
@@ -81,36 +83,36 @@ const CreatePublishTarget: React.FC<CreatePublishTargetProps> = (props) => {
     isNameValid(newName);
   };
 
-  const isDisable = () => {
-    if (!targetType || !name || errorMessage) {
-      return true;
-    } else {
-      return false;
+  const saveDisabled = useMemo(() => {
+    const disabled = !targetType || !name || !!errorMessage;
+    if (hasView) {
+      // plugin config must also be valid
+      return disabled || !pluginConfigIsValid;
     }
-  };
+    return disabled;
+  }, [errorMessage, name, pluginConfigIsValid, targetType]);
 
-  const submit = async () => {
+  // setup plugin APIs
+  useEffect(() => {
+    PluginAPI.publish.setPublishConfig = (config) => updateConfig(config);
+    PluginAPI.publish.setConfigIsValid = (valid) => setPluginConfigIsValid(valid);
+    PluginAPI.publish.useConfigBeingEdited = () => [current ? JSON.parse(current.configuration) : undefined];
+
+    return () => {
+      // TODO: clean this mechanism up -- make more generalized because this does not scale
+      // these APIs will no longer work once the component is unmounted
+      PluginAPI.disableSetConfigIsValid();
+      PluginAPI.disableSetPublishConfig();
+      PluginAPI.disableUseConfigBeingEdited();
+    };
+  }, [current, targetType, name]);
+
+  const submit = async (_e) => {
     if (targetType) {
       await props.updateSettings(name, targetType, JSON.stringify(config) || '{}');
       props.closeDialog();
     }
   };
-
-  useEffect(() => {
-    const submitConfig = async (config) => {
-      if (targetType) {
-        console.log(`Got config from plugin ${name}: ${config}`);
-        await props.updateSettings(name, targetType, JSON.stringify(config) || '{}');
-        props.closeDialog();
-      }
-    };
-    PluginAPI.publish.submitPublishConfig = submitConfig;
-
-    return () => {
-      // this API will no longer work once the component is unmounted
-      PluginAPI.disablePublishConfig();
-    };
-  }, [targetType, name]);
 
   const publishTargetContent = useMemo(() => {
     if (hasView && targetType) {
@@ -130,10 +132,10 @@ const CreatePublishTarget: React.FC<CreatePublishTargetProps> = (props) => {
           value={config}
           onChange={updateConfig}
         />
-        <button hidden disabled={isDisable()} type="submit" />
+        <button hidden disabled={saveDisabled} type="submit" />
       </Fragment>
     );
-  }, [targetType, instructions, schema, hasView]);
+  }, [targetType, instructions, schema, hasView, saveDisabled]);
 
   return (
     <Fragment>
@@ -156,7 +158,7 @@ const CreatePublishTarget: React.FC<CreatePublishTargetProps> = (props) => {
       </form>
       <DialogFooter>
         <DefaultButton text={formatMessage('Cancel')} onClick={props.closeDialog} />
-        <PrimaryButton disabled={isDisable()} text={formatMessage('Save')} onClick={submit} />
+        <PrimaryButton disabled={saveDisabled} text={formatMessage('Save')} onClick={submit} />
       </DialogFooter>
     </Fragment>
   );
