@@ -4,14 +4,12 @@
 import { resolve } from 'path';
 
 import { start } from './server';
+import { setEnvDefault } from './utility/setEnvDefault';
 
-// TODO: clean this up --> ensureEnvVar(__VAR_NAME__, __DEFAULT__); ?
-if (process.env.COMPOSER_EXTENSION_DATA === undefined) {
-  process.env.COMPOSER_EXTENSION_DATA = resolve(__dirname, '../extension-manifest.json');
-}
-if (process.env.COMPOSER_BUILTIN_PLUGINS_FOLDER === undefined) {
-  process.env.COMPOSER_BUILTIN_PLUGINS_FOLDER = resolve(__dirname, '../../../plugins');
-}
+// TODO: make sure that these are configured correctly in the Electron prod env
+setEnvDefault('COMPOSER_EXTENSION_DATA', resolve(__dirname, '../extension-manifest.json'));
+setEnvDefault('COMPOSER_BUILTIN_PLUGINS_DIR', resolve(__dirname, '../../../plugins'));
+setEnvDefault('COMPOSER_REMOTE_PLUGINS_DIR', resolve(__dirname, '../../..'));
 
 start().catch((err) => {
   console.error('Error occurred while starting server: ', err);

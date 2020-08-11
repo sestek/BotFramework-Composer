@@ -134,7 +134,8 @@ async function loadServer() {
     // only change paths if packaged electron app
     const unpackedDir = getUnpackedAsarPath();
     process.env.COMPOSER_RUNTIME_FOLDER = join(unpackedDir, 'runtime');
-    process.env.COMPOSER_BUILTIN_PLUGINS_FOLDER = join(unpackedDir, 'build', 'plugins');
+    process.env.COMPOSER_BUILTIN_PLUGINS_DIR = join(unpackedDir, 'build', 'plugins');
+    process.env.COMPOSER_REMOTE_PLUGINS_DIR = ''; // TODO: assign this
   }
 
   // only create a new data directory if packaged electron app

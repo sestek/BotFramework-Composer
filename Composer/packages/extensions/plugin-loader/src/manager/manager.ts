@@ -16,9 +16,6 @@ const log = logger.extend('plugins');
 
 const exec = promisify(childProcess.exec);
 
-// TODO: allow this to be overridden by an ENV var
-const REMOTE_PLUGINS_DIR = path.resolve(__dirname, '../../../Composer');
-
 interface PluginInfo {
   id: string;
   keywords: string[];
@@ -53,11 +50,11 @@ export class PluginManager {
   // singleton
   private constructor() {
     console.log(
-      `PluginManager initializing with the following values: \n${process.env.COMPOSER_BUILTIN_PLUGINS_FOLDER} \n${REMOTE_PLUGINS_DIR}`
+      `PluginManager initializing with the following values: \n${process.env.COMPOSER_BUILTIN_PLUGINS_DIR} \n${process.env.COMPOSER_REMOTE_PLUGINS_DIR}`
     );
     this.manifest = new ExtensionManifestStore();
-    this.builtinPluginsDir = process.env.COMPOSER_BUILTIN_PLUGINS_FOLDER;
-    this.remotePluginsDir = REMOTE_PLUGINS_DIR;
+    this.builtinPluginsDir = process.env.COMPOSER_BUILTIN_PLUGINS_DIR;
+    this.remotePluginsDir = process.env.COMPOSER_REMOTE_PLUGINS_DIR;
   }
 
   public getAll() {

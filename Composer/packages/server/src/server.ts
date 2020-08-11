@@ -112,10 +112,6 @@ export async function start(): Promise<number | string> {
     }
   });
 
-  app.get('/plugins.html', function (req, res) {
-    res.render(path.resolve(clientDirectory, 'plugins.ejs'), { __nonce__: req.__nonce__ });
-  });
-
   app.get('*', function (req, res) {
     res.render(path.resolve(clientDirectory, 'index.ejs'), { __nonce__: req.__nonce__ });
   });

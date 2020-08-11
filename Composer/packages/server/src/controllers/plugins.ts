@@ -31,19 +31,6 @@ interface SearchPluginsRequest extends Request {
   };
 }
 
-interface PluginBundlesRequest extends Request {
-  params: {
-    id: string;
-  };
-}
-
-interface PluginBundleRequest extends Request {
-  params: {
-    id: string;
-    bundleId: string;
-  };
-}
-
 interface PluginViewBundleRequest extends Request {
   params: {
     id: string;
@@ -114,31 +101,10 @@ export async function searchPlugins(req: SearchPluginsRequest, res: Response) {
   res.json(results);
 }
 
-export async function getAllBundles(req: PluginBundlesRequest, res: Response) {
-  const { id } = req.params;
-
-  const bundles = await PluginManager.getInstance().getAllBundles(id);
-  res.json(bundles);
-}
-
-export async function getBundle(req: PluginBundleRequest, res: Response) {
-  const { id, bundleId } = req.params;
-
-  const bundle = PluginManager.getInstance().getBundle(id, bundleId);
-
-  console.log('sending bundle', bundle);
-  if (bundle) {
-    res.sendFile(bundle);
-  } else {
-    res.status(404);
-  }
-}
-
 export async function getBundleForView(req: PluginViewBundleRequest, res: Response) {
   const { id, view } = req.params;
   const plugin = PluginManager.getInstance().find(id);
   const bundleId = plugin.contributes.views?.[view].bundleId as string;
-  // TODO: refactor into reusable function for getBundle()
   const bundle = PluginManager.getInstance().getBundle(id, bundleId);
   if (bundle) {
     res.sendFile(bundle);

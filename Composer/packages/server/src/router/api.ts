@@ -62,8 +62,6 @@ router.post('/plugins', PluginsController.addPlugin);
 router.delete('/plugins', PluginsController.removePlugin);
 router.patch('/plugins/toggle', PluginsController.togglePlugin);
 router.get('/plugins/search', PluginsController.searchPlugins);
-router.get('/plugins/:id/bundles', PluginsController.getAllBundles);
-router.get('/plugins/:id/bundles/:bundleId', PluginsController.getBundle);
 router.get('/plugins/:id/view/:view', PluginsController.getBundleForView);
 
 const ErrorHandler = (handler: RequestHandler) => (req: Request, res: Response, next: NextFunction) => {
