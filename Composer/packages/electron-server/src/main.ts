@@ -151,8 +151,8 @@ async function loadServer() {
 
 async function main() {
   log('Rendering application...');
-  initAppMenu();
   const mainWindow = ElectronWindow.getInstance().browserWindow;
+  initAppMenu(mainWindow);
   if (mainWindow) {
     if (process.env.COMPOSER_DEV_TOOLS) {
       mainWindow.webContents.openDevTools();

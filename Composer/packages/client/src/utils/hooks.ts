@@ -1,13 +1,14 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-import { useState, useEffect, useContext, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { globalHistory } from '@reach/router';
 import replace from 'lodash/replace';
 import find from 'lodash/find';
+import { useRecoilValue } from 'recoil';
 
+import { projectIdState, designPageLocationState, pluginsState } from './../recoilModel';
 import { bottomLinks, topLinks } from './pageLinks';
-import { StoreContext } from './../store';
 import routerCache from './routerCache';
 
 export const useLocation = () => {
@@ -20,16 +21,17 @@ export const useLocation = () => {
 };
 
 export const useLinks = () => {
-  const { state } = useContext(StoreContext);
-  const { projectId, dialogs, designPageLocation, plugins } = state;
-  const openedDialogId = designPageLocation.dialogId || dialogs.find(({ isRoot }) => isRoot === true)?.id || 'Main';
+  const plugins = useRecoilValue(pluginsState);
+  const projectId = useRecoilValue(projectIdState);
+  const designPageLocation = useRecoilValue(designPageLocationState);
+  const openedDialogId = designPageLocation.dialogId || 'Main';
+
   // add page-contributing plugins
   const pluginPages = plugins.reduce((pages, p) => {
     const pageConfig = p.contributes?.views?.page;
     if (pageConfig) {
       pages.push({ ...pageConfig, id: p.id });
     }
-
     return pages;
   }, [] as any[]);
 
