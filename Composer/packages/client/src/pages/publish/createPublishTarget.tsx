@@ -97,14 +97,6 @@ const CreatePublishTarget: React.FC<CreatePublishTargetProps> = (props) => {
     PluginAPI.publish.setPublishConfig = (config) => updateConfig(config);
     PluginAPI.publish.setConfigIsValid = (valid) => setPluginConfigIsValid(valid);
     PluginAPI.publish.useConfigBeingEdited = () => [current ? JSON.parse(current.configuration) : undefined];
-
-    return () => {
-      // TODO: clean this mechanism up -- make more generalized because this does not scale
-      // these APIs will no longer work once the component is unmounted
-      PluginAPI.disableSetConfigIsValid();
-      PluginAPI.disableSetPublishConfig();
-      PluginAPI.disableUseConfigBeingEdited();
-    };
   }, [current, targetType, name]);
 
   const submit = async (_e) => {

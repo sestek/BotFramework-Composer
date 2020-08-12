@@ -1,9 +1,12 @@
 import { isElectron } from './electronUtil';
 
-interface OAuthConfig {
+export interface OAuthOptions {
   clientId: string;
-  redirectUri?: string;
   scopes: string[];
+}
+
+interface OAuthConfig extends OAuthOptions {
+  redirectUri: string;
 }
 
 interface OAuthTokens {
@@ -17,15 +20,15 @@ export class OAuthClient {
   private id: number;
   private static clientId = 0;
 
-  constructor(config: OAuthConfig) {
-    this.config = { redirectUri: 'bfcomposer://oauth', ...config };
+  constructor(config: OAuthOptions) {
+    this.config = { ...config, redirectUri: 'bfcomposer://oauth' };
     this.tokens = {};
     // assign an id to the client so we can route responses back to the right one from the main process
     this.id = OAuthClient.clientId++;
   }
 
   /** Logs in the current user and retrieves an id token from Azure */
-  public async login(): Promise<void> {
+  public async login(): Promise<string> {
     // we need to perform a login request
     if (isElectron()) {
       return new Promise((resolve, reject) => {
@@ -34,7 +37,7 @@ export class OAuthClient {
           if (id === this.id) {
             // make sure the auth request originated from this client instance
             this.tokens.idToken = idToken;
-            resolve();
+            resolve(idToken);
           }
         });
         ipcRenderer.on('oauth-login-error', (_ev, error, id) => {
@@ -47,13 +50,13 @@ export class OAuthClient {
         // TODO: after some amount of time we should reject
       });
     }
-    // no-op
+    return Promise.reject('OAuth flow is currently disabled in the Composer web environment.');
   }
 
   /**
    * Retrieves an Azure access token on behalf of the current signed-in user.
    */
-  public async getTokenSilently(): Promise<string | void> {
+  public async getTokenSilently(): Promise<string> {
     if (isElectron()) {
       if (!this.tokens.idToken) {
         // login
@@ -80,6 +83,8 @@ export class OAuthClient {
         // TODO: after some amount of time we should reject
       });
     }
-    // no-op
+    return Promise.reject('OAuth flow is currently disabled in the Composer web environment.');
   }
+
+  // TODO: add token caching
 }

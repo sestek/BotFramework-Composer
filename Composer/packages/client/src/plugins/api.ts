@@ -1,4 +1,7 @@
+import { OAuthClient, OAuthOptions } from '../utils/oauthClient';
+
 interface IAPI {
+  auth: AuthAPI;
   page?: PageAPI;
   publish: PublishAPI;
   storage?: StorageAPI;
@@ -12,45 +15,37 @@ interface PublishConfig {
   [key: string]: any;
 }
 
+interface AuthAPI {
+  login: (options: OAuthOptions) => Promise<string>; // returns an id token
+  getAccessToken: (options: OAuthOptions) => Promise<string>; // returns an access token
+}
+
 interface PublishAPI {
-  setConfigIsValid: (valid: boolean) => void;
-  setPublishConfig: (config: PublishConfig) => void;
-  useConfigBeingEdited: (() => PublishConfig[]) | (() => void);
-}
-
-function disabledSetPublishConfig() {
-  console.error('setPublishConfig() cannot be used at this moment.');
-}
-
-function disabledSetConfigIsValid() {
-  console.error('setConfigIsValid() cannot be used at this moment.');
-}
-
-function disabledUseConfigBeingEdited() {
-  console.error('useConfigBeingEdited() cannot be used at this moment.');
+  setConfigIsValid?: (valid: boolean) => void;
+  setPublishConfig?: (config: PublishConfig) => void;
+  useConfigBeingEdited?: (() => PublishConfig[]) | (() => void);
 }
 
 class API implements IAPI {
+  auth: AuthAPI;
   publish: PublishAPI;
 
   constructor() {
-    this.publish = {
-      setConfigIsValid: disabledSetConfigIsValid,
-      setPublishConfig: disabledSetPublishConfig,
-      useConfigBeingEdited: disabledUseConfigBeingEdited,
+    this.auth = {
+      login: (options: OAuthOptions) => {
+        const client = new OAuthClient(options);
+        return client.login();
+      },
+      getAccessToken: (options: OAuthOptions) => {
+        const client = new OAuthClient(options);
+        return client.getTokenSilently();
+      },
     };
-  }
-
-  public disableSetConfigIsValid() {
-    this.publish.setConfigIsValid = disabledSetConfigIsValid;
-  }
-
-  public disableSetPublishConfig() {
-    this.publish.setPublishConfig = disabledSetPublishConfig;
-  }
-
-  public disableUseConfigBeingEdited() {
-    this.publish.useConfigBeingEdited = disabledUseConfigBeingEdited;
+    this.publish = {
+      setConfigIsValid: undefined,
+      setPublishConfig: undefined,
+      useConfigBeingEdited: undefined,
+    };
   }
 }
 

@@ -16,7 +16,7 @@ import { botOpeningState, projectIdState, dispatcherState, schemasState } from '
 import { openAlertModal } from './components/Modal/AlertDialog';
 import { dialogStyle } from './components/Modal/dialogStyle';
 import { LoadingSpinner } from './components/LoadingSpinner';
-import { PluginPageContainer } from './pages/PluginPageContainer';
+import { PluginPageContainer } from './pages/plugin/pluginPageContainer';
 
 const DesignPage = React.lazy(() => import('./pages/design/DesignPage'));
 const LUPage = React.lazy(() => import('./pages/language-understanding/LUPage'));

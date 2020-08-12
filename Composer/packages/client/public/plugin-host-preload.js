@@ -18,4 +18,3 @@ window.Composer = {};
 window.Composer['render'] = function (component) {
   ReactDOM.render(component, document.getElementById('plugin-root'));
 };
-console.log('plugin-host-preload done loading');

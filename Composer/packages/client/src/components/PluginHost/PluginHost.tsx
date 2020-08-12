@@ -12,8 +12,9 @@ interface PluginHostProps {
   pluginType?: PluginType;
 }
 
+/** Binds closures around Composer client code to plugin iframe's window object */
 function attachPluginAPI(win: Window, type: PluginType) {
-  const api = PluginAPI[type];
+  const api = { ...PluginAPI[type], ...PluginAPI.auth };
   for (const method in api) {
     win['Composer'][method] = (...args) => api[method](...args);
   }
@@ -53,7 +54,6 @@ export const PluginHost: React.FC<PluginHostProps> = (props) => {
         const pluginScriptId = `plugin-${pluginType}-${pluginName}`;
         await new Promise((resolve) => {
           const cb = () => {
-            console.log(`Bundle onload complete for ${pluginScriptId}. Resolving!`);
             resolve();
           };
           injectScript(iframeDocument, pluginScriptId, `/api/plugins/${pluginName}/view/${pluginType}`, false, cb); // Do we want to make this async since it could be a large file?
