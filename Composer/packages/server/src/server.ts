@@ -25,11 +25,16 @@ import { apiRouter } from './router/api';
 import { BASEURL } from './constants';
 import { attachLSPServer } from './utility/attachLSP';
 import log from './logger';
+import { setEnvDefault } from './utility/setEnvDefault';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const session = require('express-session');
 
 export async function start(): Promise<number | string> {
+  // TODO: make sure that these are configured correctly in the Electron prod env
+  setEnvDefault('COMPOSER_EXTENSION_DATA', path.resolve(__dirname, '../extension-manifest.json'));
+  setEnvDefault('COMPOSER_BUILTIN_PLUGINS_DIR', path.resolve(__dirname, '../../../plugins'));
+  setEnvDefault('COMPOSER_REMOTE_PLUGINS_DIR', path.resolve(__dirname, '../../..'));
   const clientDirectory = path.resolve(require.resolve('@bfc/client'), '..');
   const app: Express = express();
   app.set('view engine', 'ejs');

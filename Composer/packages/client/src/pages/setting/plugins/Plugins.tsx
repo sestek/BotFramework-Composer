@@ -18,21 +18,19 @@ import { Dialog, DialogType, DialogFooter } from 'office-ui-fabric-react/lib/Dia
 import { TextField } from 'office-ui-fabric-react/lib/TextField';
 import axios from 'axios';
 
-import { Plugin } from '../../../store/types';
-import { useStoreContext } from '../../../hooks/useStoreContext';
-import { ToolBar } from '../../../components/ToolBar/ToolBar';
-import { IToolBarItem } from '../../../components/ToolBar/ToolBar.types';
+import { PluginConfig } from '../../../recoilModel/types';
+import { Toolbar, IToolbarItem } from '../../../components/Toolbar';
 import httpClient from '../../../utils/httpUtil';
+import { useRecoilValue } from 'recoil';
+import { dispatcherState, pluginsState } from '../../../recoilModel';
 
 const Plugins: React.FC<RouteComponentProps> = () => {
-  const {
-    state: { plugins },
-    actions: { fetchPlugins, togglePlugin, addPlugin, removePlugin },
-  } = useStoreContext();
+  const { fetchPlugins, togglePlugin, addPlugin, removePlugin } = useRecoilValue(dispatcherState);
+  const plugins = useRecoilValue(pluginsState);
   const [showNewModal, setShowNewModal] = useState(false);
   const [pluginName, setPluginName] = useState<string | null>(null);
   const [pluginVersion, setPluginVersion] = useState<string | null>(null);
-  const [matchingPlugins, setMatchingPlugins] = useState<Plugin[]>([]);
+  const [matchingPlugins, setMatchingPlugins] = useState<PluginConfig[]>([]);
   const [selectedPlugin, setSelectedPlugin] = useState<any>();
 
   useEffect(() => {
@@ -69,7 +67,7 @@ const Plugins: React.FC<RouteComponentProps> = () => {
       name: formatMessage('Name'),
       minWidth: 100,
       maxWidth: 150,
-      onRender: (item: Plugin) => {
+      onRender: (item: PluginConfig) => {
         return <span>{item.id}</span>;
       },
     },
@@ -78,7 +76,7 @@ const Plugins: React.FC<RouteComponentProps> = () => {
       name: formatMessage('Version'),
       minWidth: 30,
       maxWidth: 100,
-      onRender: (item: Plugin) => {
+      onRender: (item: PluginConfig) => {
         return <span>{item.version}</span>;
       },
     },
@@ -87,7 +85,7 @@ const Plugins: React.FC<RouteComponentProps> = () => {
       name: formatMessage('Enabled'),
       minWidth: 30,
       maxWidth: 150,
-      onRender: (item: Plugin) => {
+      onRender: (item: PluginConfig) => {
         const text = item.enabled ? formatMessage('Disable') : formatMessage('Enable');
         return <DefaultButton onClick={() => togglePlugin(item.id, !item.enabled)}>{text}</DefaultButton>;
       },
@@ -97,7 +95,7 @@ const Plugins: React.FC<RouteComponentProps> = () => {
       name: formatMessage('Remove'),
       minWidth: 30,
       maxWidth: 150,
-      onRender: (item: Plugin) => {
+      onRender: (item: PluginConfig) => {
         return <DefaultButton onClick={() => removePlugin(item.id)}>{formatMessage('Remove')}</DefaultButton>;
       },
     },
@@ -147,7 +145,7 @@ const Plugins: React.FC<RouteComponentProps> = () => {
     },
   ];
 
-  const toolbarItems: IToolBarItem[] = [
+  const toolbarItems: IToolbarItem[] = [
     {
       type: 'action',
       text: formatMessage('Add'),
@@ -164,18 +162,18 @@ const Plugins: React.FC<RouteComponentProps> = () => {
   ];
 
   const submit = useCallback(() => {
-    if (selectedPlugin) {
+    if (selectedPlugin && pluginVersion) {
       addPlugin(selectedPlugin.id, pluginVersion);
       setShowNewModal(false);
       setPluginName(null);
       setPluginVersion(null);
       setSelectedPlugin(null);
     }
-  }, [selectedPlugin]);
+  }, [selectedPlugin, pluginVersion]);
 
   return (
     <div>
-      <ToolBar toolbarItems={toolbarItems} />
+      <Toolbar toolbarItems={toolbarItems} />
       <DetailsList
         checkboxVisibility={CheckboxVisibility.hidden}
         columns={installedColumns}
