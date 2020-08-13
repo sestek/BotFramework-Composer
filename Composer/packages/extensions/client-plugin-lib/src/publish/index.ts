@@ -1,8 +1,5 @@
 import { ComposerGlobalName } from '../common/constants';
-
-interface PublishConfig {
-  [key: string]: any;
-}
+import { PublishConfig } from './types';
 
 export function setPublishConfig(config: PublishConfig) {
   window[ComposerGlobalName].setPublishConfig(config);

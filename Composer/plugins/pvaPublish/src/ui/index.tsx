@@ -1,5 +1,6 @@
 import * as React from 'react';
+import { render } from '@bfc/client-plugin-lib';
 
 import { PVADialog } from './authDialog';
 
-window['Composer'].render(<PVADialog />);
+render(<PVADialog />);
