@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { jsx } from '@emotion/core';
+import { jsx, SerializedStyles } from '@emotion/core';
 import * as React from 'react';
 import { useEffect, useRef } from 'react';
 import { iframeStyle } from './styles';
@@ -8,6 +8,7 @@ import { PluginAPI } from '../../plugins/api';
 type PluginType = 'publish' | 'page' | 'storage' | 'create';
 
 interface PluginHostProps {
+  extraIframeStyles?: SerializedStyles[];
   pluginName?: string;
   pluginType?: PluginType;
 }
@@ -33,6 +34,7 @@ function injectScript(doc: Document, id: string, src: string, async: boolean, on
  */
 export const PluginHost: React.FC<PluginHostProps> = (props) => {
   const targetRef = useRef<HTMLIFrameElement>(null);
+  const { extraIframeStyles = [] } = props;
 
   useEffect(() => {
     // load the plugin and pass it the render function
@@ -63,5 +65,5 @@ export const PluginHost: React.FC<PluginHostProps> = (props) => {
     renderPluginView();
   }, [props.pluginName, props.pluginType, targetRef]);
 
-  return <iframe ref={targetRef} css={iframeStyle}></iframe>;
+  return <iframe ref={targetRef} css={[iframeStyle, ...extraIframeStyles]}></iframe>;
 };

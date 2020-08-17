@@ -16,7 +16,7 @@ import { PublishTarget } from '@bfc/shared';
 import { PublishType } from '../../recoilModel/types';
 import { userSettingsState } from '../../recoilModel';
 
-import { label } from './styles';
+import { label, customPublishUISurface } from './styles';
 import { PluginHost } from '../../components/PluginHost/PluginHost';
 import { PluginAPI } from '../../plugins/api';
 
@@ -109,7 +109,13 @@ const CreatePublishTarget: React.FC<CreatePublishTargetProps> = (props) => {
   const publishTargetContent = useMemo(() => {
     if (hasView && targetType) {
       // render custom plugin view
-      return <PluginHost pluginName={targetType} pluginType={'publish'}></PluginHost>;
+      return (
+        <PluginHost
+          pluginName={targetType}
+          pluginType={'publish'}
+          extraIframeStyles={[customPublishUISurface]}
+        ></PluginHost>
+      );
     }
     // render default instruction / schema editor view
     return (

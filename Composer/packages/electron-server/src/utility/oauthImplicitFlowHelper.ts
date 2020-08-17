@@ -5,9 +5,9 @@ const composerRedirectUri = 'bfcomposer://oauth';
 const baseUrl = 'https://login.microsoftonline.com/organizations/';
 const implicitEndpoint = 'oauth2/v2.0/authorize';
 
-function parseJwt(token) {
-  var base64Payload = token.split('.')[1];
-  var payload = Buffer.from(base64Payload, 'base64');
+function parseJwt(token: string) {
+  const base64Payload = token.split('.')[1];
+  const payload = Buffer.from(base64Payload, 'base64');
   return JSON.parse(payload.toString());
 }
 
