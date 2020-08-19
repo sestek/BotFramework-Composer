@@ -4,3 +4,15 @@ import { ComposerGlobalName } from './constants';
 export function render(component: React.ReactElement) {
   window[ComposerGlobalName].render(component);
 }
+
+function fetchProxy(url: string, options: RequestInit) {
+  return fetch(`/api/plugins/proxy/${encodeURIComponent(url)}`, {
+    method: 'POST',
+    body: JSON.stringify(options),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+}
+
+export { fetchProxy as fetch };

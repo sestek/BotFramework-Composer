@@ -38,6 +38,13 @@ interface PluginViewBundleRequest extends Request {
   };
 }
 
+interface PluginFetchRequest extends Request {
+  body: RequestInit;
+  params: {
+    url: string;
+  };
+}
+
 export async function listPlugins(req: Request, res: Response) {
   res.json(PluginManager.getInstance().getAll()); // might need to have this list all enabled plugins ?
 }
@@ -110,5 +117,31 @@ export async function getBundleForView(req: PluginViewBundleRequest, res: Respon
     res.sendFile(bundle);
   } else {
     res.status(404);
+  }
+}
+
+export async function performPluginFetch(req: PluginFetchRequest, res: Response) {
+  const { url } = req.params;
+  const options = req.body;
+  if (!url || !options) {
+    return res.status(400).send('Missing URL or request options.');
+  }
+  try {
+    const response = await fetch(url, options);
+    const contentType = response.headers.get('content-type');
+    if (!response.ok) {
+      throw response;
+    }
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text();
+      return res.send(text);
+    }
+    const json = await response.json();
+    res.json(json);
+  } catch (e) {
+    if (e && e.json) {
+      e = await e.json();
+    }
+    res.status(500).send(e);
   }
 }

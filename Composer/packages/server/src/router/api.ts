@@ -63,6 +63,8 @@ router.delete('/plugins', PluginsController.removePlugin);
 router.patch('/plugins/toggle', PluginsController.togglePlugin);
 router.get('/plugins/search', PluginsController.searchPlugins);
 router.get('/plugins/:id/view/:view', PluginsController.getBundleForView);
+// proxy route for plugins (allows plugin client code to make fetch calls using the Composer server as a proxy -- avoids browser blocking request due to CORS)
+router.post('/plugins/proxy/:url', PluginsController.performPluginFetch);
 
 const ErrorHandler = (handler: RequestHandler) => (req: Request, res: Response, next: NextFunction) => {
   Promise.resolve(handler(req, res, next)).catch(next);
