@@ -22,7 +22,7 @@
     }
   },
   "extendsComposer": true,
-  "description": "Publish bot to PVA (Preview)",
+  "description": "Publish bot to Power Virtual Agents (Preview)",
   "main": "dist/index.js",
   "dependencies": {
     "@bfc/client-plugin-lib": "file:../../packages/extensions/client-plugin-lib",

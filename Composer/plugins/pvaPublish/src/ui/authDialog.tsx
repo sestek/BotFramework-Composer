@@ -188,7 +188,6 @@ export const PVADialog: FC = () => {
 
   return (
     <div style={root}>
-      <h1 style={{ marginTop: 0 }}>PVA Plugin</h1>
       {loginButton}
       {loginStatusMessage}
       {envPicker}
